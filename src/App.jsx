@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
