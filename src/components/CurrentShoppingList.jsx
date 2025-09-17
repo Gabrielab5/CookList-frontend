@@ -18,6 +18,9 @@ const CurrentShoppingList = ({ onViewList }) => {
 
   // Get statistics for the current list
   const getListStats = (list) => {
+    if (!list || !list.items) {
+      return { totalItems: 0, completedItems: 0, remainingItems: 0 };
+    }
     const totalItems = list.items.length;
     const completedItems = list.items.filter(item => item.checked).length;
     const remainingItems = totalItems - completedItems;
@@ -96,7 +99,7 @@ const CurrentShoppingList = ({ onViewList }) => {
       <div className="mb-4">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Recipes:</h4>
         <div className="flex flex-wrap gap-2">
-          {currentList.recipes.slice(0, 3).map((recipe, index) => (
+          {(currentList.recipes || []).slice(0, 3).map((recipe, index) => (
             <span
               key={index}
               className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium"
@@ -104,9 +107,9 @@ const CurrentShoppingList = ({ onViewList }) => {
               {recipe}
             </span>
           ))}
-          {currentList.recipes.length > 3 && (
+          {(currentList.recipes || []).length > 3 && (
             <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-              +{currentList.recipes.length - 3} more
+              +{(currentList.recipes || []).length - 3} more
             </span>
           )}
         </div>
@@ -116,7 +119,7 @@ const CurrentShoppingList = ({ onViewList }) => {
       <div>
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Recent Items:</h4>
         <div className="space-y-1">
-          {currentList.items.slice(0, 3).map((item, index) => (
+          {(currentList.items || []).slice(0, 3).map((item, index) => (
             <div key={index} className="flex items-center text-sm">
               <div className={`w-3 h-3 rounded-full mr-2 ${
                 item.checked ? 'bg-green-500' : 'bg-gray-300'
@@ -131,9 +134,9 @@ const CurrentShoppingList = ({ onViewList }) => {
               </span>
             </div>
           ))}
-          {currentList.items.length > 3 && (
+          {(currentList.items || []).length > 3 && (
             <div className="text-xs text-gray-500 mt-2">
-              +{currentList.items.length - 3} more items
+              +{(currentList.items || []).length - 3} more items
             </div>
           )}
         </div>

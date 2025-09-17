@@ -6,6 +6,7 @@ import AddRecipeButton from '../components/AddRecipeButton';
 import AddRecipeModal from '../components/AddRecipeModal';
 import ShoppingList from '../components/ShoppingList';
 import CurrentShoppingList from '../components/CurrentShoppingList';
+import RecipeDetailModal from '../components/RecipeDetailModal';
 import { mockRecipes } from '../data/mockRecipes';
 
 const Home = () => {
@@ -24,6 +25,8 @@ const Home = () => {
     const [selectedRecipes, setSelectedRecipes] = useState([]);
     const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
     const [showShoppingList, setShowShoppingList] = useState(false);
+    const [selectedRecipeForDetails, setSelectedRecipeForDetails] = useState(null);
+    const [isRecipeDetailModalOpen, setIsRecipeDetailModalOpen] = useState(false);
 
     // Filter and sort recipes based on selected filters
     const filteredRecipes = useMemo(() => {
@@ -197,6 +200,25 @@ const Home = () => {
         }
     };
 
+    const handleViewRecipeDetails = (recipe) => {
+        setSelectedRecipeForDetails(recipe);
+        setIsRecipeDetailModalOpen(true);
+    };
+
+    const handleCloseRecipeDetails = () => {
+        setIsRecipeDetailModalOpen(false);
+        setSelectedRecipeForDetails(null);
+    };
+
+    const handleAddRecipeToShoppingList = (recipe) => {
+        // Add recipe to selected recipes if not already selected
+        if (!selectedRecipes.some(r => r.id === recipe.id)) {
+            setSelectedRecipes(prev => [...prev, recipe]);
+        }
+        // Close the modal
+        handleCloseRecipeDetails();
+    };
+
     // Show shopping list if active
     if (showShoppingList) {
         return (
@@ -251,6 +273,7 @@ const Home = () => {
                                         <RecipeCard 
                                             recipe={recipe} 
                                             onSelect={handleRecipeSelect}
+                                            onViewDetails={handleViewRecipeDetails}
                                         />
                                         {selectedRecipes.some(r => r.id === recipe.id) && (
                                             <div className="absolute top-3 right-3 bg-orange-500 text-white rounded-full p-2">
@@ -323,6 +346,14 @@ const Home = () => {
                 isOpen={isAddRecipeModalOpen}
                 onClose={handleCloseAddRecipeModal}
                 onAddRecipe={handleAddNewRecipe}
+            />
+
+            {/* Recipe Detail Modal */}
+            <RecipeDetailModal
+                recipe={selectedRecipeForDetails}
+                isOpen={isRecipeDetailModalOpen}
+                onClose={handleCloseRecipeDetails}
+                onAddToShoppingList={handleAddRecipeToShoppingList}
             />
         </div>
     );
