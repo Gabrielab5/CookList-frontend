@@ -27,6 +27,11 @@ const Home = () => {
     const [showShoppingList, setShowShoppingList] = useState(false);
     const [selectedRecipeForDetails, setSelectedRecipeForDetails] = useState(null);
     const [isRecipeDetailModalOpen, setIsRecipeDetailModalOpen] = useState(false);
+    const [favorites, setFavorites] = useState(() => {
+        // Load favorites from localStorage on component mount
+        const savedFavorites = localStorage.getItem('favoriteRecipes');
+        return savedFavorites ? JSON.parse(savedFavorites) : [];
+    });
 
     // Filter and sort recipes based on selected filters
     const filteredRecipes = useMemo(() => {
@@ -219,6 +224,25 @@ const Home = () => {
         handleCloseRecipeDetails();
     };
 
+    const handleToggleFavorite = (recipe) => {
+        setFavorites(prevFavorites => {
+            const isFavorite = prevFavorites.some(fav => fav.id === recipe.id);
+            let newFavorites;
+            
+            if (isFavorite) {
+                // Remove from favorites
+                newFavorites = prevFavorites.filter(fav => fav.id !== recipe.id);
+            } else {
+                // Add to favorites
+                newFavorites = [...prevFavorites, recipe];
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('favoriteRecipes', JSON.stringify(newFavorites));
+            return newFavorites;
+        });
+    };
+
     // Show shopping list if active
     if (showShoppingList) {
         return (
@@ -274,6 +298,8 @@ const Home = () => {
                                             recipe={recipe} 
                                             onSelect={handleRecipeSelect}
                                             onViewDetails={handleViewRecipeDetails}
+                                            isFavorite={favorites.some(fav => fav.id === recipe.id)}
+                                            onToggleFavorite={handleToggleFavorite}
                                         />
                                         {selectedRecipes.some(r => r.id === recipe.id) && (
                                             <div className="absolute top-3 right-3 bg-orange-500 text-white rounded-full p-2">

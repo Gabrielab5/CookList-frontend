@@ -1,11 +1,11 @@
 import React from 'react';
 
-const RecipeCard = ({ recipe, onSelect, onViewDetails }) => {
+const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavorite }) => {
   const { id, name, image, category, tags, prepTime, servings } = recipe;
 
   const handleCardClick = (e) => {
-    // Prevent event bubbling when clicking on the view details button
-    if (e.target.closest('.view-details-btn')) {
+    // Prevent event bubbling when clicking on buttons
+    if (e.target.closest('.view-details-btn') || e.target.closest('.heart-btn')) {
       return;
     }
     onSelect && onSelect(recipe);
@@ -25,8 +25,37 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails }) => {
             e.target.src = 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
           }}
         />
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 text-sm font-medium text-gray-700">
-          {prepTime}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {/* Heart Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite && onToggleFavorite(recipe);
+            }}
+            className="heart-btn bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-all duration-200 shadow-md hover:shadow-lg"
+            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <svg 
+              className={`w-5 h-5 transition-colors duration-200 ${
+                isFavorite ? 'text-red-500 fill-current' : 'text-gray-400 hover:text-red-400'
+              }`} 
+              fill={isFavorite ? 'currentColor' : 'none'} 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+              />
+            </svg>
+          </button>
+          
+          {/* Prep Time */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 text-sm font-medium text-gray-700">
+            {prepTime}
+          </div>
         </div>
         {tags && tags.length > 0 && (
           <div className="absolute top-3 left-3 flex flex-col gap-1">
