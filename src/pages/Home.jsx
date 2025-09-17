@@ -5,6 +5,7 @@ import RecipeCard from '../components/RecipeCard';
 import AddRecipeButton from '../components/AddRecipeButton';
 import AddRecipeModal from '../components/AddRecipeModal';
 import ShoppingList from '../components/ShoppingList';
+import CurrentShoppingList from '../components/CurrentShoppingList';
 import { mockRecipes } from '../data/mockRecipes';
 
 const Home = () => {
@@ -175,12 +176,34 @@ const Home = () => {
         setShowShoppingList(false);
     };
 
+    const handleAddToHistory = (shoppingListData) => {
+        // Clear current shopping list from localStorage
+        localStorage.removeItem('currentShoppingList');
+        
+        // Show success message or redirect
+        alert('Shopping list added to history successfully!');
+        setShowShoppingList(false);
+    };
+
+    const handleViewCurrentList = () => {
+        // Load current shopping list and show it
+        const currentListData = localStorage.getItem('currentShoppingList');
+        if (currentListData) {
+            const currentList = JSON.parse(currentListData);
+            setSelectedRecipes(currentList.recipes.map(recipeName => 
+                recipes.find(recipe => recipe.name === recipeName)
+            ).filter(Boolean));
+            setShowShoppingList(true);
+        }
+    };
+
     // Show shopping list if active
     if (showShoppingList) {
         return (
             <ShoppingList 
                 selectedRecipes={selectedRecipes}
                 onBack={handleBackToRecipes}
+                onAddToHistory={handleAddToHistory}
             />
         );
     }
@@ -190,6 +213,9 @@ const Home = () => {
             <Header onLogout={() => console.log('Logout')} />
             
             <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-8">
+                {/* Current Shopping List */}
+                <CurrentShoppingList onViewList={handleViewCurrentList} />
+                
                 <div className="flex gap-10">
                     {/* Left Sidebar - Filters */}
                     <div className="w-96 flex-shrink-0">

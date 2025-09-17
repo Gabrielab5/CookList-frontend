@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-const ShoppingList = ({ selectedRecipes, onBack }) => {
+const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
   const [checkedItems, setCheckedItems] = useState({});
   const [shoppingListItems, setShoppingListItems] = useState([]);
 
@@ -64,6 +64,16 @@ const ShoppingList = ({ selectedRecipes, onBack }) => {
         initialChecked[item.id] = false;
       });
       setCheckedItems(initialChecked);
+
+      // Save current shopping list to localStorage
+      const currentListData = {
+        id: Date.now().toString(),
+        name: `Shopping List - ${new Date().toLocaleDateString()}`,
+        createdAt: new Date().toISOString(),
+        recipes: selectedRecipes.map(recipe => recipe.name),
+        items: allIngredients
+      };
+      localStorage.setItem('currentShoppingList', JSON.stringify(currentListData));
     }
   }, [selectedRecipes]);
 
@@ -94,10 +104,22 @@ const ShoppingList = ({ selectedRecipes, onBack }) => {
 
   // Handle checkbox change
   const handleItemCheck = (itemId) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }));
+    const newCheckedItems = {
+      ...checkedItems,
+      [itemId]: !checkedItems[itemId]
+    };
+    setCheckedItems(newCheckedItems);
+
+    // Update localStorage
+    const currentListData = localStorage.getItem('currentShoppingList');
+    if (currentListData) {
+      const currentList = JSON.parse(currentListData);
+      currentList.items = currentList.items.map(item => ({
+        ...item,
+        checked: newCheckedItems[item.id] || false
+      }));
+      localStorage.setItem('currentShoppingList', JSON.stringify(currentList));
+    }
   };
 
   // Handle check all items in a category
@@ -140,6 +162,34 @@ const ShoppingList = ({ selectedRecipes, onBack }) => {
       newCheckedItems[item.id] = false;
     });
     setCheckedItems(newCheckedItems);
+  };
+
+  // Add to history
+  const handleAddToHistory = () => {
+    const shoppingListData = {
+      id: Date.now().toString(),
+      name: `Shopping List - ${new Date().toLocaleDateString()}`,
+      createdAt: new Date().toISOString(),
+      recipes: selectedRecipes.map(recipe => recipe.name),
+      items: shoppingListItems.map(item => ({
+        ...item,
+        checked: checkedItems[item.id] || false
+      }))
+    };
+
+    // Save to localStorage
+    const existingHistory = JSON.parse(localStorage.getItem('shoppingHistory') || '[]');
+    existingHistory.unshift(shoppingListData); // Add to beginning
+    localStorage.setItem('shoppingHistory', JSON.stringify(existingHistory));
+
+    // Call parent callback
+    if (onAddToHistory) {
+      onAddToHistory(shoppingListData);
+    }
+
+    // Clear current shopping list
+    setShoppingListItems([]);
+    setCheckedItems({});
   };
 
   if (selectedRecipes.length === 0) {
@@ -222,6 +272,17 @@ const ShoppingList = ({ selectedRecipes, onBack }) => {
               className="px-6 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors duration-200"
             >
               Clear Completed ({checkedItemsCount})
+            </button>
+          )}
+          {checkedItemsCount === totalItems && totalItems > 0 && (
+            <button
+              onClick={handleAddToHistory}
+              className="px-6 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors duration-200 flex items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Add to History
             </button>
           )}
         </div>

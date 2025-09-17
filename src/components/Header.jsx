@@ -20,21 +20,27 @@ const Header = ({ onLogout }) => {
             </h1>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex items-center space-x-8">
-            <button
-              onClick={() => navigate('/favorites')}
-              className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
-            >
-              Favorites
-            </button>
-            <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
-            >
-              Log out
-            </button>
-          </nav>
+                 {/* Navigation */}
+                 <nav className="flex items-center space-x-8">
+                   <button
+                     onClick={() => navigate('/favorites')}
+                     className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
+                   >
+                     Favorites
+                   </button>
+                   <button
+                     onClick={() => navigate('/shopping-history')}
+                     className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
+                   >
+                     Shopping History
+                   </button>
+                   <button
+                     onClick={handleLogout}
+                     className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
+                   >
+                     Log out
+                   </button>
+                 </nav>
         </div>
       </div>
     </header>
