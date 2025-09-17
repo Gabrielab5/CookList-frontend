@@ -3,10 +3,11 @@ import Header from '../components/Header';
 import FilterSidebar from '../components/FilterSidebar';
 import RecipeCard from '../components/RecipeCard';
 import AddRecipeButton from '../components/AddRecipeButton';
+import AddRecipeModal from '../components/AddRecipeModal';
 import { mockRecipes } from '../data/mockRecipes';
 
 const Home = () => {
-    const [recipes] = useState(mockRecipes);
+    const [recipes, setRecipes] = useState(mockRecipes);
     const [filters, setFilters] = useState({ 
         tags: [], 
         ingredientSearch: '', 
@@ -19,6 +20,7 @@ const Home = () => {
         sortBy: 'name'
     });
     const [selectedRecipes, setSelectedRecipes] = useState([]);
+    const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
 
     // Filter and sort recipes based on selected filters
     const filteredRecipes = useMemo(() => {
@@ -148,8 +150,15 @@ const Home = () => {
     };
 
     const handleAddRecipe = () => {
-        // TODO: Implement add recipe functionality
-        console.log('Add recipe clicked');
+        setIsAddRecipeModalOpen(true);
+    };
+
+    const handleCloseAddRecipeModal = () => {
+        setIsAddRecipeModalOpen(false);
+    };
+
+    const handleAddNewRecipe = (newRecipe) => {
+        setRecipes(prevRecipes => [newRecipe, ...prevRecipes]);
     };
 
     const handleGenerateShoppingList = () => {
@@ -220,7 +229,17 @@ const Home = () => {
                                 <h3 className="text-2xl font-semibold text-gray-900 mb-3">No recipes found</h3>
                                 <p className="text-gray-600 mb-6 text-lg">Try adjusting your filters or search terms.</p>
                                 <button
-                                    onClick={() => setFilters({ tags: [], ingredientSearch: '' })}
+                                    onClick={() => setFilters({ 
+                                        tags: [], 
+                                        ingredientSearch: '', 
+                                        excludeIngredients: '',
+                                        categories: [],
+                                        pantryItems: [],
+                                        prepTimeRange: '',
+                                        servingsRange: '',
+                                        difficultyLevel: '',
+                                        sortBy: 'name'
+                                    })}
                                     className="px-6 py-3 text-orange-600 hover:text-orange-700 font-medium text-lg"
                                 >
                                     Clear filters
@@ -257,6 +276,13 @@ const Home = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Add Recipe Modal */}
+            <AddRecipeModal
+                isOpen={isAddRecipeModalOpen}
+                onClose={handleCloseAddRecipeModal}
+                onAddRecipe={handleAddNewRecipe}
+            />
         </div>
     );
 };
