@@ -4,6 +4,7 @@ import FilterSidebar from '../components/FilterSidebar';
 import RecipeCard from '../components/RecipeCard';
 import AddRecipeButton from '../components/AddRecipeButton';
 import AddRecipeModal from '../components/AddRecipeModal';
+import ShoppingList from '../components/ShoppingList';
 import { mockRecipes } from '../data/mockRecipes';
 
 const Home = () => {
@@ -21,6 +22,7 @@ const Home = () => {
     });
     const [selectedRecipes, setSelectedRecipes] = useState([]);
     const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
+    const [showShoppingList, setShowShoppingList] = useState(false);
 
     // Filter and sort recipes based on selected filters
     const filteredRecipes = useMemo(() => {
@@ -166,9 +168,22 @@ const Home = () => {
             alert('Please select at least one recipe to generate a shopping list.');
             return;
         }
-        // TODO: Implement shopping list generation
-        console.log('Generate shopping list for:', selectedRecipes);
+        setShowShoppingList(true);
     };
+
+    const handleBackToRecipes = () => {
+        setShowShoppingList(false);
+    };
+
+    // Show shopping list if active
+    if (showShoppingList) {
+        return (
+            <ShoppingList 
+                selectedRecipes={selectedRecipes}
+                onBack={handleBackToRecipes}
+            />
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
