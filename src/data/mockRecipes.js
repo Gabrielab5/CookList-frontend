@@ -1,3 +1,61 @@
+// פונקציה להמרת טקסט עברי למספר דקות
+const parsePrepTimeToMinutes = (prepTimeText) => {
+  const timeMap = {
+    'חמש': 5,
+    'עשר': 10,
+    'חמש עשרה': 15,
+    'עשרים': 20,
+    'עשרים וחמש': 25,
+    'שלושים': 30,
+    'שלושים וחמש': 35,
+    'ארבעים': 40,
+    'ארבעים וחמש': 45,
+    'חמישים': 50,
+    'חמישים וחמש': 55,
+    'שישים': 60,
+    'שבעים': 70,
+    'שמונים': 80,
+    'תשעים': 90,
+    'מאה': 100,
+    'מאה ועשרים': 120
+  };
+  
+  for (const [hebrew, minutes] of Object.entries(timeMap)) {
+    if (prepTimeText.includes(hebrew)) {
+      return minutes;
+    }
+  }
+  
+  // אם לא נמצא, ננסה לחלץ מספר מהטקסט
+  const numberMatch = prepTimeText.match(/\d+/);
+  return numberMatch ? parseInt(numberMatch[0]) : 30; // ברירת מחדל 30 דקות
+};
+
+// פונקציה להמרת מספר דקות לטקסט עברי
+const minutesToHebrewText = (minutes) => {
+  const timeMap = {
+    5: 'חמש',
+    10: 'עשר',
+    15: 'חמש עשרה',
+    20: 'עשרים',
+    25: 'עשרים וחמש',
+    30: 'שלושים',
+    35: 'שלושים וחמש',
+    40: 'ארבעים',
+    45: 'ארבעים וחמש',
+    50: 'חמישים',
+    55: 'חמישים וחמש',
+    60: 'שישים',
+    70: 'שבעים',
+    80: 'שמונים',
+    90: 'תשעים',
+    100: 'מאה',
+    120: 'מאה ועשרים'
+  };
+  
+  return timeMap[minutes] || `${minutes}`;
+};
+
 export const mockRecipes = [
   {
     id: 1,
@@ -6,6 +64,7 @@ export const mockRecipes = [
     category: "איטלקי",
     tags: ["כשר"],
     prepTime: "שלושים דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("שלושים דקות"),
     servings: 4,
     difficulty: "בינוני",
     ingredients: ["ארבע מאות גרם ספגטי", "ארבע ביצים גדולות", "מאה גרם גבינת פרמזן", "מאתיים גרם פנצ'טה", "שתי שיני שום", "פלפל שחור", "מלח"],
@@ -26,6 +85,7 @@ export const mockRecipes = [
     category: "אסייתי",
     tags: ["טבעוני", "ללא גלוטן"],
     prepTime: "עשרים דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("עשרים דקות"),
     servings: 2,
     difficulty: "קל",
     ingredients: ["שתי כוסות פרחי ברוקולי", "שני גזרים חתוכים", "פלפל מתוק אחד חתוך", "שלוש כפות רוטב סויה", "שתי שיני שום", "כף אחת ג'ינג'ר", "שתי כפות שמן שומשום"],
@@ -46,6 +106,7 @@ export const mockRecipes = [
     category: "איטלקי",
     tags: ["כשר"],
     prepTime: "עשרים וחמש דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("עשרים וחמש דקות"),
     servings: 4,
     difficulty: "בינוני",
     ingredients: ["שני חזה עוף", "ארבע מאות גרם פטוצ'יני", "כוס אחת שמנת", "מאה גרם פרמזן", "שתי כפות חמאה"],
@@ -66,6 +127,7 @@ export const mockRecipes = [
     category: "ים תיכוני",
     tags: ["טבעוני", "ללא גלוטן"],
     prepTime: "חמש עשרה דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("חמש עשרה דקות"),
     servings: 3,
     difficulty: "קל",
     ingredients: ["פחית אחת חומוס", "שתי עגבניות", "מלפפון אחד", "שלוש כפות שמן זית", "לימון אחד"],
@@ -85,6 +147,7 @@ export const mockRecipes = [
     category: "מקסיקני",
     tags: ["כשר"],
     prepTime: "שלושים וחמש דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("שלושים וחמש דקות"),
     servings: 4,
     difficulty: "קל",
     ingredients: ["חמש מאות גרם בשר טחון", "שמונה קליפות טאקו", "חסה", "עגבניות", "גבינה"],
@@ -105,6 +168,7 @@ export const mockRecipes = [
     category: "איטלקי",
     tags: ["צמחוני"],
     prepTime: "עשר דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("עשר דקות"),
     servings: 2,
     difficulty: "קל",
     ingredients: ["מאתיים גרם מוצרלה", "שתי עגבניות", "בזיליקום טרי", "שמן זית", "חומץ בלסמי"],
@@ -124,6 +188,7 @@ export const mockRecipes = [
     category: "קינוח",
     tags: ["צמחוני"],
     prepTime: "שישים דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("שישים דקות"),
     servings: 8,
     difficulty: "קל",
     ingredients: ["שלוש בננות בשלות", "שתי כוסות קמח", "שתי ביצים", "כוס אחת סוכר", "חצי כוס חמאה", "כפית אחת סודה לשתייה", "כפית אחת וניל"],
@@ -145,6 +210,7 @@ export const mockRecipes = [
     category: "ים תיכוני",
     tags: ["צמחוני"],
     prepTime: "חמש עשרה דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("חמש עשרה דקות"),
     servings: 4,
     difficulty: "קל",
     ingredients: ["מאתיים גרם גבינת פטה", "ארבע עגבניות", "שני מלפפונים", "זיתים", "שמן זית"],
@@ -164,6 +230,7 @@ export const mockRecipes = [
     category: "מרק",
     tags: ["צמחוני", "ללא גלוטן"],
     prepTime: "שלושים דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("שלושים דקות"),
     servings: 4,
     difficulty: "קל",
     ingredients: ["שש עגבניות", "בצל אחד", "שלוש שיני שום", "שתי כוסות ציר ירקות", "בזיליקום טרי"],
@@ -184,6 +251,7 @@ export const mockRecipes = [
     category: "ארוחת בוקר",
     tags: ["צמחוני"],
     prepTime: "עשרים דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("עשרים דקות"),
     servings: 4,
     difficulty: "קל",
     ingredients: ["שתי כוסות קמח", "שתי ביצים", "כוס וחצי חלב", "שתי כפות חמאה", "סירופ מייפל"],
@@ -204,6 +272,7 @@ export const mockRecipes = [
     category: "סלט",
     tags: ["צמחוני"],
     prepTime: "חמש עשרה דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("חמש עשרה דקות"),
     servings: 2,
     difficulty: "קל",
     ingredients: ["ראש אחד חסה רומאית", "גבינת פרמזן", "קרוטונים", "רוטב קיסר"],
@@ -223,6 +292,7 @@ export const mockRecipes = [
     category: "קינוח",
     tags: ["צמחוני"],
     prepTime: "תשעים דקות",
+    prepTimeMinutes: parsePrepTimeToMinutes("תשעים דקות"),
     servings: 8,
     difficulty: "בינוני",
     ingredients: ["שתי כוסות קמח", "שלושת רבעי כוס אבקת קקאו", "שלוש ביצים", "כוס וחצי סוכר", "חצי כוס חמאה", "שוקולד"],

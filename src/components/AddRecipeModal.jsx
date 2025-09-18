@@ -159,7 +159,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
         name: formData.name.trim(),
         description: '', // Default empty description
         category: formData.category,
-        prepTime: `${formData.prepTime} min`,
+        prepTime: `${formData.prepTime} דקות`,
+        prepTimeMinutes: parseInt(formData.prepTime),
         servings: parseInt(formData.servings),
         difficulty: formData.difficulty || 'Medium', // Default to Medium if not selected
         image: formData.image || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',

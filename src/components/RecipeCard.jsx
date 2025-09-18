@@ -1,7 +1,7 @@
 import React from 'react';
 
 const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavorite }) => {
-  const { id, name, image, category, tags, prepTime, servings } = recipe;
+  const { id, name, image, category, tags, prepTime, prepTimeMinutes, servings } = recipe;
 
   const handleCardClick = (e) => {
     // Prevent event bubbling when clicking on buttons
@@ -54,7 +54,7 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavor
           
           {/* Prep Time */}
           <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-700">
-            {prepTime}
+            {prepTimeMinutes} דקות
           </div>
         </div>
       </div>

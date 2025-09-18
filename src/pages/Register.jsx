@@ -4,6 +4,8 @@ import AuthInput from '../components/AuthInput';
 import AuthButton from '../components/AuthButton';
 import HeroImage from '../components/HeroImage';
 import { EmailIcon, LockIcon, GoogleIcon, UserIcon } from '../components/Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useApi } from '../contexts/ApiContext';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -13,8 +15,9 @@ const Register = () => {
         confirmPassword: ''
     });
     const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { register, loginWithGoogle, error: authError, clearError } = useAuth();
+    const { handleApiCall, loading } = useApi();
 
     const handleInputChange = (field) => (e) => {
         setFormData(prev => ({
@@ -68,23 +71,42 @@ const Register = () => {
         
         if (!validateForm()) return;
         
-        setLoading(true);
+        // Clear previous errors
+        setErrors({});
+        clearError();
         
-        // Simulate registration delay for testing
-        setTimeout(() => {
-            setLoading(false);
-            navigate('/home');
-        }, 1000);
+        try {
+            await handleApiCall(async () => {
+                await register(formData.email, formData.password, formData.name);
+                navigate('/home');
+            });
+        } catch (error) {
+            // Set specific field errors based on error type
+            if (error.message.includes('אימייל')) {
+                setErrors({ email: error.message });
+            } else if (error.message.includes('סיסמה')) {
+                setErrors({ password: error.message });
+            } else if (error.message.includes('שם')) {
+                setErrors({ name: error.message });
+            } else {
+                setErrors({ general: error.message });
+            }
+        }
     };
 
     const handleGoogleSignup = async () => {
-        setLoading(true);
+        // Clear previous errors
+        setErrors({});
+        clearError();
         
-        // Simulate Google signup delay for testing
-        setTimeout(() => {
-            setLoading(false);
-            navigate('/home');
-        }, 1000);
+        try {
+            await handleApiCall(async () => {
+                await loginWithGoogle();
+                navigate('/home');
+            });
+        } catch (error) {
+            setErrors({ general: error.message });
+        }
     };
 
     return (
@@ -157,6 +179,12 @@ const Register = () => {
                             </div>
                         )}
 
+                        {errors.general && (
+                            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
+                                {errors.general}
+                            </div>
+                        )}
+
                         <AuthButton 
                             type="submit" 
                             disabled={loading}
@@ -183,6 +211,13 @@ const Register = () => {
                         >
                             הירשם עם Google
                         </AuthButton>
+
+                        {/* Display Firebase auth errors */}
+                        {authError && (
+                            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-red-600 text-sm text-center">{authError}</p>
+                            </div>
+                        )}
                     </form>
 
                     <div className="mt-8 text-center">

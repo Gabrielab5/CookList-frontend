@@ -29,6 +29,7 @@ const Home = () => {
     const [showShoppingList, setShowShoppingList] = useState(false);
     const [selectedRecipeForDetails, setSelectedRecipeForDetails] = useState(null);
     const [isRecipeDetailModalOpen, setIsRecipeDetailModalOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [favorites, setFavorites] = useState(() => {
         // Load favorites from localStorage on component mount
         const savedFavorites = localStorage.getItem('favoriteRecipes');
@@ -91,7 +92,7 @@ const Home = () => {
 
             // Filter by prep time
             if (filters.prepTimeRange) {
-                const prepTime = parseInt(recipe.prepTime);
+                const prepTime = recipe.prepTimeMinutes;
                 switch (filters.prepTimeRange) {
                     case 'quick':
                         if (prepTime > 15) return false;
@@ -139,9 +140,9 @@ const Home = () => {
                     case 'name-desc':
                         return b.name.localeCompare(a.name);
                     case 'prepTime':
-                        return parseInt(a.prepTime) - parseInt(b.prepTime);
+                        return a.prepTimeMinutes - b.prepTimeMinutes;
                     case 'prepTime-desc':
-                        return parseInt(b.prepTime) - parseInt(a.prepTime);
+                        return b.prepTimeMinutes - a.prepTimeMinutes;
                     case 'servings':
                         return a.servings - b.servings;
                     case 'servings-desc':
@@ -227,6 +228,10 @@ const Home = () => {
         setSelectedRecipeForDetails(null);
     };
 
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     const handleAddRecipeToShoppingList = (recipe) => {
         // Add recipe to selected recipes if not already selected
         if (!selectedRecipes.some(r => r.id === recipe.id)) {
@@ -268,7 +273,7 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Header onLogout={() => {}} />
+            <Header />
             
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8">
                 {/* Current Shopping List */}
@@ -276,20 +281,47 @@ const Home = () => {
                 
                 <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
                     {/* Left Sidebar - Filters */}
-                    <div className="w-full lg:w-80 xl:w-96 flex-shrink-0">
-                        <FilterSidebar 
-                            onFilterChange={handleFilterChange}
-                            onIngredientSearch={(search) => {
-                                // Handle ingredient search if needed
-                            }}
-                        />
-                    </div>
+                    {isSidebarOpen && (
+                        <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 transition-all duration-300 ease-in-out">
+                            <FilterSidebar 
+                                onFilterChange={handleFilterChange}
+                                onIngredientSearch={(search) => {
+                                    // Handle ingredient search if needed
+                                }}
+                            />
+                        </div>
+                    )}
 
                     {/* Main Content */}
                     <div className="flex-1 min-w-0">
                         {/* Recipes Header */}
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
-                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">מתכונים</h2>
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">מתכונים</h2>
+                                {/* Sidebar Toggle Button */}
+                                <button
+                                    onClick={toggleSidebar}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium relative ${
+                                        isSidebarOpen 
+                                            ? "bg-gray-100 hover:bg-gray-200 text-gray-700" 
+                                            : "bg-orange-100 hover:bg-orange-200 text-orange-700"
+                                    }`}
+                                    title={isSidebarOpen ? "הסתר מסננים" : "הצג מסננים"}
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    </svg>
+                                    <span className="hidden sm:inline">
+                                        {isSidebarOpen ? "הסתר מסננים" : "הצג מסננים"}
+                                    </span>
+                                    {/* Active filters indicator */}
+                                    {!isSidebarOpen && Object.values(filters).some(value => 
+                                        Array.isArray(value) ? value.length > 0 : value !== '' && value !== 'name'
+                                    ) && (
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></div>
+                                    )}
+                                </button>
+                            </div>
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 lg:gap-6">
                                 {selectedRecipes.length > 0 && (
                                     <button
@@ -303,9 +335,36 @@ const Home = () => {
                             </div>
                         </div>
 
+                         {/* Selected Recipes Summary */}
+                         {selectedRecipes.length > 0 && (
+                            <div className="mt-10 bg-white rounded-xl shadow-md p-8">
+                                <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                                    מתכונים נבחרים ({selectedRecipes.length})
+                        </h3>
+                                <div className="flex flex-wrap gap-3 pb-5">
+                                    {selectedRecipes.map(recipe => (
+                                        <span
+                                            key={recipe.id}
+                                            className="inline-flex items-center px-4 py-2 rounded-full text-base font-medium bg-orange-100 text-orange-800"
+                                        >
+                                            {recipe.name}
+                                            <button
+                                                onClick={() => handleRecipeSelect(recipe)}
+                                                className="ml-3 text-orange-600 hover:text-orange-800"
+                                            >
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                        </div>
+                        )}
+
                         {/* Recipe Grid */}
                         {filteredRecipes.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                                 {filteredRecipes.map(recipe => (
                                     <div key={recipe.id} className="relative">
                                         <RecipeCard 
@@ -316,7 +375,7 @@ const Home = () => {
                                             onToggleFavorite={handleToggleFavorite}
                                         />
                                         {selectedRecipes.some(r => r.id === recipe.id) && (
-                                            <div className="absolute top-3 right-3 bg-orange-500 text-white rounded-full p-2">
+                                            <div className="absolute top-3 left-3 bg-orange-500 text-white rounded-full p-2">
                                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                 </svg>
@@ -351,32 +410,7 @@ const Home = () => {
                 </div>
                         )}
 
-                        {/* Selected Recipes Summary */}
-                        {selectedRecipes.length > 0 && (
-                            <div className="mt-10 bg-white rounded-xl shadow-md p-8">
-                                <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                                    מתכונים נבחרים ({selectedRecipes.length})
-                        </h3>
-                                <div className="flex flex-wrap gap-3">
-                                    {selectedRecipes.map(recipe => (
-                                        <span
-                                            key={recipe.id}
-                                            className="inline-flex items-center px-4 py-2 rounded-full text-base font-medium bg-orange-100 text-orange-800"
-                                        >
-                                            {recipe.name}
-                                            <button
-                                                onClick={() => handleRecipeSelect(recipe)}
-                                                className="ml-3 text-orange-600 hover:text-orange-800"
-                                            >
-                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-                        </div>
-                        )}
+                       
                         </div>
                     </div>
                 </div>

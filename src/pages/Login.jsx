@@ -1,17 +1,24 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import AuthInput from '../components/AuthInput';
 import AuthButton from '../components/AuthButton';
 import HeroImage from '../components/HeroImage';
 import { EmailIcon, LockIcon, GoogleIcon } from '../components/Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useApi } from '../contexts/ApiContext';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login, loginWithGoogle, error: authError, clearError } = useAuth();
+    const { handleApiCall, loading } = useApi();
+    
+    // Get the return URL from location state
+    const from = location.state?.from?.pathname || '/home';
 
     const validateForm = () => {
         const newErrors = {};
@@ -37,23 +44,40 @@ const Login = () => {
         
         if (!validateForm()) return;
         
-        setLoading(true);
+        // Clear previous errors
+        setErrors({});
+        clearError();
         
-        // Simulate login delay for testing
-        setTimeout(() => {
-            setLoading(false);
-            navigate('/home');
-        }, 1000);
+        try {
+            await handleApiCall(async () => {
+                await login(email, password);
+                navigate(from, { replace: true });
+            });
+        } catch (error) {
+            // Set specific field errors based on error type
+            if (error.message.includes('אימייל')) {
+                setErrors({ email: error.message });
+            } else if (error.message.includes('סיסמה')) {
+                setErrors({ password: error.message });
+            } else {
+                setErrors({ general: error.message });
+            }
+        }
     };
 
     const handleGoogleLogin = async () => {
-        setLoading(true);
+        // Clear previous errors
+        setErrors({});
+        clearError();
         
-        // Simulate Google login delay for testing
-        setTimeout(() => {
-            setLoading(false);
-            navigate('/home');
-        }, 1000);
+        try {
+            await handleApiCall(async () => {
+                await loginWithGoogle();
+                navigate(from, { replace: true });
+            });
+        } catch (error) {
+            setErrors({ general: error.message });
+        }
     };
 
     return (
@@ -106,6 +130,12 @@ const Login = () => {
                             </div>
                         )}
 
+                        {errors.general && (
+                            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
+                                {errors.general}
+                            </div>
+                        )}
+
                         <AuthButton 
                             type="submit" 
                             disabled={loading}
@@ -132,6 +162,8 @@ const Login = () => {
                         >
                             התחבר עם Google
                         </AuthButton>
+
+                     
                     </form>
 
                     <div className="mt-8 text-center">
