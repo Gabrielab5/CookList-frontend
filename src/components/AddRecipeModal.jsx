@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
     category: '',
     prepTime: '',
     servings: '',
@@ -17,7 +16,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Appetizer', 'Soup', 'Salad', 'Pasta', 'Meat', 'Seafood', 'Vegetarian'];
+  const categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Appetizer', 'Soup', 'Salad', 'Pasta', 'Meat', 'Seafood'];
   const availableTags = ['Kosher', 'Vegan', 'Gluten-Free', 'Vegetarian', 'Dairy-Free', 'Low-Carb', 'Keto', 'Paleo', 'Mediterranean', 'Asian', 'Mexican', 'Italian'];
 
   const handleInputChange = (field, value) => {
@@ -101,11 +100,10 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
 
     // Required fields validation
     if (!formData.name.trim()) newErrors.name = 'Recipe name is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.prepTime) newErrors.prepTime = 'Prep time is required';
     if (!formData.servings) newErrors.servings = 'Servings is required';
-    if (!formData.difficulty) newErrors.difficulty = 'Difficulty level is required';
+    if (formData.tags.length === 0) newErrors.tags = 'At least one tag is required';
 
     // Numeric validation
     if (formData.prepTime && (isNaN(formData.prepTime) || formData.prepTime <= 0)) {
@@ -159,11 +157,11 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
       const newRecipe = {
         id: Date.now().toString(), // Simple ID generation
         name: formData.name.trim(),
-        description: formData.description.trim(),
+        description: '', // Default empty description
         category: formData.category,
         prepTime: `${formData.prepTime} min`,
         servings: parseInt(formData.servings),
-        difficulty: formData.difficulty,
+        difficulty: formData.difficulty || 'Medium', // Default to Medium if not selected
         image: formData.image || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
         ingredients: formData.ingredients.filter(ing => ing.trim()),
         instructions: formData.instructions.filter(inst => inst.trim()),
@@ -179,7 +177,6 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
       // Reset form
       setFormData({
         name: '',
-        description: '',
         category: '',
         prepTime: '',
         servings: '',
@@ -249,23 +246,6 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               {errors.name && <p className="text-red-600 text-sm mt-2">{errors.name}</p>}
             </div>
 
-            {/* Description */}
-            <div className="md:col-span-2">
-              <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Description *
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Describe your recipe..."
-                rows={3}
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg resize-none ${
-                  errors.description ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
-                }`}
-                disabled={loading}
-              />
-              {errors.description && <p className="text-red-600 text-sm mt-2">{errors.description}</p>}
-            </div>
 
             {/* Category */}
             <div>
@@ -329,22 +309,19 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
             {/* Difficulty */}
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Difficulty Level *
+                Difficulty Level
               </label>
               <select
                 value={formData.difficulty}
                 onChange={(e) => handleInputChange('difficulty', e.target.value)}
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
-                  errors.difficulty ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
-                }`}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
                 disabled={loading}
               >
-                <option value="">Select difficulty</option>
+                <option value="">Select difficulty (optional)</option>
                 <option value="Easy">Easy</option>
                 <option value="Medium">Medium</option>
                 <option value="Hard">Hard</option>
               </select>
-              {errors.difficulty && <p className="text-red-600 text-sm mt-2">{errors.difficulty}</p>}
             </div>
 
             {/* Image URL */}
@@ -456,7 +433,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
           {/* Tags */}
           <div>
             <label className="block text-lg font-semibold text-gray-800 mb-3">
-              Tags (optional)
+              Tags *
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {availableTags.map((tag) => (
@@ -464,14 +441,25 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                   <input
                     type="checkbox"
                     checked={formData.tags.includes(tag)}
-                    onChange={() => handleTagToggle(tag)}
+                    onChange={() => {
+                      handleTagToggle(tag);
+                      // Clear error when user selects a tag
+                      if (errors.tags) {
+                        setErrors(prev => ({
+                          ...prev,
+                          tags: ''
+                        }));
+                      }
+                    }}
                     className="sr-only"
                     disabled={loading}
                   />
                   <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center transition-all duration-200 ${
                     formData.tags.includes(tag)
                       ? 'bg-orange-500 border-orange-500'
-                      : 'border-gray-300 group-hover:border-orange-300'
+                      : errors.tags 
+                        ? 'border-red-500 group-hover:border-red-400'
+                        : 'border-gray-300 group-hover:border-orange-300'
                   }`}>
                     {formData.tags.includes(tag) && (
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -487,6 +475,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                 </label>
               ))}
             </div>
+            {errors.tags && <p className="text-red-600 text-sm mt-2">{errors.tags}</p>}
           </div>
 
           {/* Submit Error */}
