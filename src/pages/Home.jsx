@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import FilterSidebar from '../components/FilterSidebar';
 import RecipeCard from '../components/RecipeCard';
@@ -10,6 +11,7 @@ import RecipeDetailModal from '../components/RecipeDetailModal';
 import { mockRecipes } from '../data/mockRecipes';
 
 const Home = () => {
+    const location = useLocation();
     const [recipes, setRecipes] = useState(mockRecipes);
     const [filters, setFilters] = useState({ 
         tags: [], 
@@ -32,6 +34,16 @@ const Home = () => {
         const savedFavorites = localStorage.getItem('favoriteRecipes');
         return savedFavorites ? JSON.parse(savedFavorites) : [];
     });
+
+    // Handle navigation from Favorites page to open recipe details
+    useEffect(() => {
+        if (location.state?.openRecipeDetails) {
+            setSelectedRecipeForDetails(location.state.openRecipeDetails);
+            setIsRecipeDetailModalOpen(true);
+            // Clear the state to prevent reopening on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
     // Filter and sort recipes based on selected filters
     const filteredRecipes = useMemo(() => {
