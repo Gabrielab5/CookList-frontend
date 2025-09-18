@@ -216,17 +216,17 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-6">
-          <div className="flex justify-between items-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">רשימת קניות</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">רשימת קניות</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
                 נוצר מ-{selectedRecipes.length} מתכון{selectedRecipes.length !== 1 ? 'ים' : ''}
               </p>
             </div>
             <button
               onClick={onBack}
-              className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+              className="px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg sm:rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-sm sm:text-base"
             >
               חזור למתכונים
             </button>
@@ -235,10 +235,10 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8">
         {/* Statistics */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-900">{totalItems}</div>
               <div className="text-sm text-gray-600">סה"כ מוצרים</div>

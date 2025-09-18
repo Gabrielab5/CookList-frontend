@@ -208,15 +208,15 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg sm:rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-3xl font-bold text-gray-900">הוסף מתכון חדש</h2>
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">הוסף מתכון חדש</h2>
           <button
             onClick={handleClose}
             disabled={loading}
-            className="text-gray-400 hover:text-gray-600 transition-colors duration-200 disabled:opacity-50"
+            className="text-gray-400 hover:text-gray-600 transition-colors duration-200 disabled:opacity-50 p-1"
           >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -225,12 +225,12 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-8">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 sm:space-y-8">
           {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* Recipe Name */}
-            <div className="md:col-span-2">
-              <label className="block text-lg font-semibold text-gray-800 mb-3">
+            <div className="sm:col-span-2">
+              <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">
                 שם המתכון *
               </label>
               <input
@@ -238,24 +238,23 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="הזן שם מתכון"
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${
                   errors.name ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
                 }`}
                 disabled={loading}
               />
-              {errors.name && <p className="text-red-600 text-sm mt-2">{errors.name}</p>}
+              {errors.name && <p className="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2">{errors.name}</p>}
             </div>
-
 
             {/* Category */}
             <div>
-              <label className="block text-lg font-semibold text-gray-800 mb-3">
+              <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">
                 קטגוריה *
               </label>
               <select
                 value={formData.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${
                   errors.category ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
                 }`}
                 disabled={loading}
@@ -265,12 +264,12 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                   <option key={category} value={category}>{category}</option>
                 ))}
               </select>
-              {errors.category && <p className="text-red-600 text-sm mt-2">{errors.category}</p>}
+              {errors.category && <p className="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2">{errors.category}</p>}
             </div>
 
             {/* Prep Time */}
             <div>
-              <label className="block text-lg font-semibold text-gray-800 mb-3">
+              <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">
                 זמן הכנה (דקות) *
               </label>
               <input
@@ -355,7 +354,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                     type="text"
                     value={ingredient}
                     onChange={(e) => handleIngredientChange(index, e.target.value)}
-                    placeholder={`Ingredient ${index + 1}`}
+                    placeholder={`מרכיב ${index + 1}`}
                     className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
                     disabled={loading}
                   />
@@ -399,7 +398,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                   <textarea
                     value={instruction}
                     onChange={(e) => handleInstructionChange(index, e.target.value)}
-                    placeholder={`Step ${index + 1}`}
+                    placeholder={`שלב ${index + 1}`}
                     rows={2}
                     className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg resize-none"
                     disabled={loading}

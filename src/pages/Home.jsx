@@ -270,42 +270,42 @@ const Home = () => {
         <div className="min-h-screen bg-gray-50">
             <Header onLogout={() => {}} />
             
-            <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-8">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8">
                 {/* Current Shopping List */}
                 <CurrentShoppingList onViewList={handleViewCurrentList} />
                 
-                <div className="flex gap-10">
+                <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
                     {/* Left Sidebar - Filters */}
-                    <div className="w-96 flex-shrink-0">
+                    <div className="w-full lg:w-80 xl:w-96 flex-shrink-0">
                         <FilterSidebar 
                             onFilterChange={handleFilterChange}
                             onIngredientSearch={(search) => {
                                 // Handle ingredient search if needed
                             }}
                         />
-                        </div>
+                    </div>
 
                     {/* Main Content */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                         {/* Recipes Header */}
-                        <div className="flex justify-between items-center mb-10">
-                            <h2 className="text-4xl font-bold text-gray-900">מתכונים</h2>
-                            <div className="flex items-center gap-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">מתכונים</h2>
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 lg:gap-6">
                                 {selectedRecipes.length > 0 && (
-                            <button
+                                    <button
                                         onClick={handleGenerateShoppingList}
-                                        className="px-8 py-4 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors duration-200 shadow-md hover:shadow-lg text-lg"
-                            >
+                                        className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors duration-200 shadow-md hover:shadow-lg text-sm sm:text-base lg:text-lg whitespace-nowrap"
+                                    >
                                         צור רשימת קניות ({selectedRecipes.length})
-                            </button>
+                                    </button>
                                 )}
                                 <AddRecipeButton onClick={handleAddRecipe} />
+                            </div>
                         </div>
-                    </div>
 
                         {/* Recipe Grid */}
                         {filteredRecipes.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                                 {filteredRecipes.map(recipe => (
                                     <div key={recipe.id} className="relative">
                                         <RecipeCard 
