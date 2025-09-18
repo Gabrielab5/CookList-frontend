@@ -1,2 +1,32 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap');
+
+/* RTL Support */
+html {
+  direction: rtl;
+}
+
+body {
+  font-family: 'Heebo', 'Inter', system-ui, sans-serif;
+  direction: rtl;
+}
+
+/* RTL-specific styles */
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
+/* Fix for icons and numbers in RTL */
+.icon-ltr {
+  direction: ltr;
+  display: inline-block;
+}
+
+.number-ltr {
+  direction: ltr;
+  display: inline-block;
+}

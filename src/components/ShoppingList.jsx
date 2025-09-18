@@ -6,16 +6,16 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
 
   // Ingredient categories for organization
   const ingredientCategories = {
-    'Produce': ['tomato', 'onion', 'garlic', 'carrot', 'celery', 'lettuce', 'spinach', 'bell pepper', 'cucumber', 'potato', 'apple', 'banana', 'lemon', 'lime', 'herbs', 'basil', 'parsley', 'cilantro', 'mint', 'thyme', 'rosemary'],
-    'Dairy': ['milk', 'cheese', 'butter', 'cream', 'yogurt', 'sour cream', 'mozzarella', 'cheddar', 'parmesan', 'ricotta', 'feta'],
-    'Meat & Seafood': ['chicken', 'beef', 'pork', 'fish', 'salmon', 'shrimp', 'turkey', 'bacon', 'ham', 'sausage', 'ground beef', 'steak'],
-    'Pantry': ['rice', 'pasta', 'bread', 'flour', 'sugar', 'salt', 'pepper', 'olive oil', 'vegetable oil', 'vinegar', 'soy sauce', 'honey', 'maple syrup'],
-    'Frozen': ['frozen vegetables', 'frozen fruit', 'ice cream', 'frozen meals'],
-    'Bakery': ['bread', 'bagels', 'croissants', 'muffins', 'crackers', 'tortillas'],
-    'Beverages': ['water', 'juice', 'soda', 'coffee', 'tea', 'wine', 'beer'],
-    'Spices & Seasonings': ['salt', 'pepper', 'garlic powder', 'onion powder', 'paprika', 'cumin', 'oregano', 'bay leaves', 'cinnamon', 'nutmeg'],
-    'Canned & Jarred': ['tomato sauce', 'tomato paste', 'canned tomatoes', 'beans', 'broth', 'stock', 'pickles', 'olives'],
-    'Other': []
+    'ירקות ופירות': ['עגבניה', 'בצל', 'שום', 'גזר', 'סלרי', 'חסה', 'תרד', 'פלפל מתוק', 'מלפפון', 'תפוח אדמה', 'תפוח', 'בננה', 'לימון', 'ליים', 'עשבי תיבול', 'בזיליקום', 'פטרוזיליה', 'כוסברה', 'נענע', 'טימין', 'רוזמרין'],
+    'חלב ומוצריו': ['חלב', 'גבינה', 'חמאה', 'שמנת', 'יוגורט', 'שמנת חמוצה', 'מוצרלה', 'צ\'דר', 'פרמזן', 'ריקוטה', 'פטה'],
+    'בשר ודגים': ['עוף', 'בקר', 'חזיר', 'דג', 'סלמון', 'שרימפ', 'הודו', 'בייקון', 'חזה הודו', 'נקניק', 'בשר טחון', 'סטייק'],
+    'מזווה': ['אורז', 'פסטה', 'לחם', 'קמח', 'סוכר', 'מלח', 'פלפל', 'שמן זית', 'שמן צמחי', 'חומץ', 'רוטב סויה', 'דבש', 'סירופ מייפל'],
+    'קפוא': ['ירקות קפואים', 'פירות קפואים', 'גלידה', 'ארוחות קפואות'],
+    'מאפייה': ['לחם', 'בייגל', 'קרואסון', 'מאפין', 'קרקרים', 'טורטיות'],
+    'משקאות': ['מים', 'מיץ', 'סודה', 'קפה', 'תה', 'יין', 'בירה'],
+    'תבלינים': ['מלח', 'פלפל', 'אבקת שום', 'אבקת בצל', 'פפריקה', 'כמון', 'אורגנו', 'עלי דפנה', 'קינמון', 'אגוז מוסקט'],
+    'שימורים': ['רוטב עגבניות', 'רסק עגבניות', 'עגבניות משומרות', 'שעועית', 'ציר', 'מרק', 'חמוצים', 'זיתים'],
+    'אחר': []
   };
 
   // Generate shopping list from selected recipes
@@ -68,7 +68,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
       // Save current shopping list to localStorage
       const currentListData = {
         id: Date.now().toString(),
-        name: `Shopping List - ${new Date().toLocaleDateString()}`,
+        name: `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
         createdAt: new Date().toISOString(),
         recipes: selectedRecipes.map(recipe => recipe.name),
         items: allIngredients
@@ -87,7 +87,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
       }
     }
     
-    return 'Other';
+    return 'אחר';
   };
 
   // Group items by category
@@ -168,7 +168,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
   const handleAddToHistory = () => {
     const shoppingListData = {
       id: Date.now().toString(),
-      name: `Shopping List - ${new Date().toLocaleDateString()}`,
+      name: `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
       createdAt: new Date().toISOString(),
       recipes: selectedRecipes.map(recipe => recipe.name),
       items: shoppingListItems.map(item => ({
@@ -199,13 +199,13 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
           <svg className="w-20 h-20 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">No Recipes Selected</h2>
-          <p className="text-gray-600 mb-6">Please select some recipes to generate a shopping list.</p>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-3">לא נבחרו מתכונים</h2>
+          <p className="text-gray-600 mb-6">אנא בחר כמה מתכונים כדי ליצור רשימת קניות.</p>
           <button
             onClick={onBack}
             className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors duration-200"
           >
-            Back to Recipes
+            חזור למתכונים
           </button>
         </div>
       </div>
@@ -219,16 +219,16 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
         <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Shopping List</h1>
+              <h1 className="text-3xl font-bold text-gray-900">רשימת קניות</h1>
               <p className="text-gray-600 mt-2">
-                Generated from {selectedRecipes.length} recipe{selectedRecipes.length !== 1 ? 's' : ''}
+                נוצר מ-{selectedRecipes.length} מתכון{selectedRecipes.length !== 1 ? 'ים' : ''}
               </p>
             </div>
             <button
               onClick={onBack}
               className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
             >
-              Back to Recipes
+              חזור למתכונים
             </button>
           </div>
         </div>
@@ -241,19 +241,19 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-900">{totalItems}</div>
-              <div className="text-sm text-gray-600">Total Items</div>
+              <div className="text-sm text-gray-600">סה"כ מוצרים</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{checkedItemsCount}</div>
-              <div className="text-sm text-gray-600">Completed</div>
+              <div className="text-sm text-gray-600">נקנו</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">{remainingItems}</div>
-              <div className="text-sm text-gray-600">Remaining</div>
+              <div className="text-sm text-gray-600">נותרו</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{Object.keys(groupedItems).length}</div>
-              <div className="text-sm text-gray-600">Categories</div>
+              <div className="text-sm text-gray-600">קטגוריות</div>
             </div>
           </div>
         </div>
@@ -264,14 +264,14 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
             onClick={handleCheckAll}
             className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-xl hover:bg-blue-600 transition-colors duration-200"
           >
-            {checkedItemsCount === totalItems ? 'Uncheck All' : 'Check All'}
+            {checkedItemsCount === totalItems ? 'בטל הכל' : 'סמן הכל'}
           </button>
           {checkedItemsCount > 0 && (
             <button
               onClick={clearCompleted}
               className="px-6 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors duration-200"
             >
-              Clear Completed ({checkedItemsCount})
+              נקה הושלמו ({checkedItemsCount})
             </button>
           )}
           {checkedItemsCount === totalItems && totalItems > 0 && (
@@ -282,7 +282,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Add to History
+              הוסף להיסטוריה
             </button>
           )}
         </div>
@@ -299,15 +299,15 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
                       type="checkbox"
                       checked={items.every(item => checkedItems[item.id])}
                       onChange={() => handleCategoryCheck(category)}
-                      className="w-5 h-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500 mr-3"
+                      className="ml-5 w-5 h-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500 mr-3"
                     />
-                    <h3 className="text-xl font-semibold text-gray-900">{category}</h3>
-                    <span className="ml-3 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium">
-                      {items.length} item{items.length !== 1 ? 's' : ''}
+                    <h3 className="ml-5 text-xl font-semibold text-gray-900">{category}</h3>
+                    <span className="ml-5 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium">
+                      {items.length} פריט{items.length !== 1 ? 'ים' : ''}
                     </span>
                   </div>
                   <div className="text-sm text-gray-600">
-                    {items.filter(item => checkedItems[item.id]).length} / {items.length} completed
+                    {items.filter(item => checkedItems[item.id]).length} / {items.length} הושלמו
                   </div>
                 </div>
               </div>
@@ -318,41 +318,43 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
                   {items.map(item => (
                     <div
                       key={item.id}
-                      className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                      className={`flex items-start p-4 rounded-lg border-2 transition-all duration-200 ${
                         checkedItems[item.id]
                           ? 'bg-green-50 border-green-200'
                           : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={checkedItems[item.id] || false}
-                        onChange={() => handleItemCheck(item.id)}
-                        className="w-5 h-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500 mr-4"
-                      />
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-lg font-medium ${
-                              checkedItems[item.id] ? 'text-green-700 line-through' : 'text-gray-900'
-                            }`}
-                          >
-                            {item.name}
-                          </span>
-                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            {item.quantity} {item.quantity === 1 ? 'recipe' : 'recipes'}
-                          </span>
-                        </div>
+                      <div className="flex items-start gap-3 flex-1">
+                        <input
+                          type="checkbox"
+                          checked={checkedItems[item.id] || false}
+                          onChange={() => handleItemCheck(item.id)}
+                          className="w-5 h-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500 mt-0.5 flex-shrink-0"
+                        />
                         
-                        {item.recipes.length > 0 && (
-                          <div className="mt-2">
-                            <span className="text-sm text-gray-600">From: </span>
-                            <span className="text-sm text-orange-600 font-medium">
-                              {item.recipes.join(', ')}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <span
+                              className={`text-lg font-medium ${
+                                checkedItems[item.id] ? 'text-green-700 line-through' : 'text-gray-900'
+                              }`}
+                            >
+                              {item.name}
+                            </span>
+                            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full flex-shrink-0 mr-2">
+                              {item.quantity} {item.quantity === 1 ? 'מתכון' : 'מתכונים'}
                             </span>
                           </div>
-                        )}
+                          
+                          {item.recipes.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-sm text-gray-600">מהמתכונים: </span>
+                              <span className="text-sm text-orange-600 font-medium">
+                                {item.recipes.join(', ')}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -368,13 +370,13 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
             <svg className="w-20 h-20 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-3">Shopping List Complete!</h3>
-            <p className="text-gray-600 mb-6">All items have been checked off. Great job!</p>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-3">רשימת הקניות הושלמה!</h3>
+            <p className="text-gray-600 mb-6">כל הפריטים סומנו. עבודה מצוינת!</p>
             <button
               onClick={onBack}
               className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors duration-200"
             >
-              Back to Recipes
+              חזור למתכונים
             </button>
           </div>
         )}

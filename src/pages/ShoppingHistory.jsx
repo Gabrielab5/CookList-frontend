@@ -22,7 +22,7 @@ const ShoppingHistory = () => {
   // Format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('he-IL', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -42,7 +42,7 @@ const ShoppingHistory = () => {
 
   // Delete a shopping list
   const handleDeleteList = (listId) => {
-    if (window.confirm('Are you sure you want to delete this shopping list?')) {
+    if (window.confirm('האם אתה בטוח שברצונך למחוק את רשימת הקניות הזו?')) {
       const updatedLists = shoppingLists.filter(list => list.id !== listId);
       setShoppingLists(updatedLists);
       localStorage.setItem('shoppingHistory', JSON.stringify(updatedLists));
@@ -79,14 +79,14 @@ const ShoppingHistory = () => {
           <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Shopping History</h1>
-                <p className="text-gray-600 mt-2">Your completed shopping lists</p>
+                <h1 className="text-3xl font-bold text-gray-900">היסטוריית קניות</h1>
+                <p className="text-gray-600 mt-2">רשימות הקניות שהושלמו שלך</p>
               </div>
               <button
                 onClick={() => navigate('/home')}
                 className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors duration-200"
               >
-                Back to Recipes
+                חזור למתכונים
               </button>
             </div>
           </div>
@@ -98,13 +98,13 @@ const ShoppingHistory = () => {
             <svg className="w-20 h-20 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-3">No Shopping History Yet</h2>
-            <p className="text-gray-600 mb-6">Complete a shopping list to see it here.</p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-3">אין עדיין היסטוריית קניות</h2>
+            <p className="text-gray-600 mb-6">השלם רשימת קניות כדי לראות אותה כאן.</p>
             <button
               onClick={() => navigate('/home')}
               className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors duration-200"
             >
-              Create Shopping List
+              צור רשימת קניות
             </button>
           </div>
         </div>
@@ -119,14 +119,14 @@ const ShoppingHistory = () => {
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Shopping History</h1>
-              <p className="text-gray-600 mt-2">{shoppingLists.length} completed shopping list{shoppingLists.length !== 1 ? 's' : ''}</p>
+              <h1 className="text-3xl font-bold text-gray-900">היסטוריית קניות</h1>
+              <p className="text-gray-600 mt-2">{shoppingLists.length} רשימת קניות שהושלמה{shoppingLists.length !== 1 ? 'ות' : ''}</p>
             </div>
             <button
               onClick={() => navigate('/home')}
               className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors duration-200"
             >
-              Back to Recipes
+              חזור למתכונים
             </button>
           </div>
         </div>
@@ -151,21 +151,21 @@ const ShoppingHistory = () => {
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-gray-900">{stats.totalItems}</div>
-                      <div className="text-sm text-gray-600">Items</div>
+                      <div className="text-sm text-gray-600">פריטים</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">{stats.completedItems}</div>
-                      <div className="text-sm text-gray-600">Completed</div>
+                      <div className="text-sm text-gray-600">הושלמו</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">{stats.categories}</div>
-                      <div className="text-sm text-gray-600">Categories</div>
+                      <div className="text-sm text-gray-600">קטגוריות</div>
                     </div>
                   </div>
 
                   {/* Recipes */}
                   <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-2">From Recipes:</h4>
+                    <h4 className="text-sm font-semibold text-gray-800 mb-2">נוצר מהמתכונים:</h4>
                     <div className="flex flex-wrap gap-2">
                       {list.recipes.map((recipe, index) => (
                         <span
@@ -184,13 +184,13 @@ const ShoppingHistory = () => {
                       onClick={() => handleViewList(list)}
                       className="flex-1 px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm"
                     >
-                      View Details
+                      צפה בפרטים
                     </button>
                     <button
                       onClick={() => handleDeleteList(list.id)}
                       className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors duration-200 text-sm"
                     >
-                      Delete
+                      מחק
                     </button>
                   </div>
                 </div>
@@ -224,7 +224,7 @@ const ShoppingHistory = () => {
             <div className="p-6">
               {/* Recipes */}
               <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Recipes Used:</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4" >הרשימה נוצרה מהמתכונים:</h3>
                 <div className="flex flex-wrap gap-3">
                   {selectedList.recipes.map((recipe, index) => (
                     <span
@@ -239,14 +239,14 @@ const ShoppingHistory = () => {
 
               {/* Shopping Items by Category */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800">Shopping Items:</h3>
+                <h3 className="text-lg font-semibold text-gray-800">פריטי קניות:</h3>
                 {Object.entries(groupItemsByCategory(selectedList.items)).map(([category, items]) => (
                   <div key={category} className="bg-gray-50 rounded-lg p-4">
                     <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
                       <span className="w-3 h-3 bg-orange-500 rounded-full mr-3"></span>
                       {category}
                       <span className="ml-3 px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-sm">
-                        {items.length} item{items.length !== 1 ? 's' : ''}
+                        {items.length} פריט{items.length !== 1 ? 'ים' : ''}
                       </span>
                     </h4>
                     <div className="space-y-2">
@@ -276,7 +276,7 @@ const ShoppingHistory = () => {
                             {item.name}
                           </span>
                           <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            {item.quantity} recipe{item.quantity !== 1 ? 's' : ''}
+                            {item.quantity} מתכונים
                           </span>
                         </div>
                       ))}
@@ -292,7 +292,7 @@ const ShoppingHistory = () => {
                 onClick={handleCloseDetail}
                 className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
               >
-                Close
+                סגור
               </button>
             </div>
           </div>

@@ -21,24 +21,30 @@ const Header = ({ onLogout }) => {
           </div>
 
                  {/* Navigation */}
-                 <nav className="flex items-center space-x-8">
+                 <nav className="flex items-center gap-8">
+                   <button
+                     onClick={() => navigate('/home')}
+                     className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
+                   >
+                     מתכונים
+                   </button>
                    <button
                      onClick={() => navigate('/favorites')}
                      className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
                    >
-                     Favorites
+                     מועדפים
                    </button>
                    <button
                      onClick={() => navigate('/shopping-history')}
                      className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
                    >
-                     Shopping History
+                     היסטוריית קניות
                    </button>
                    <button
                      onClick={handleLogout}
                      className="text-gray-600 hover:text-orange-600 font-medium transition-colors duration-200 text-lg"
                    >
-                     Log out
+                     התנתק
                    </button>
                  </nav>
         </div>

@@ -31,7 +31,7 @@ const CurrentShoppingList = ({ onViewList }) => {
   // Format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('he-IL', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -50,25 +50,25 @@ const CurrentShoppingList = ({ onViewList }) => {
     <div className="bg-white rounded-xl shadow-md p-6 mb-8">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Current Shopping List</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">רשימת קניות נוכחית</h3>
           <p className="text-gray-600 text-sm">
-            Created {formatDate(currentList.createdAt)} • From {currentList.recipes.length} recipe{currentList.recipes.length !== 1 ? 's' : ''}
+            נוצר {formatDate(currentList.createdAt)} • מ-{currentList.recipes.length} מתכון{currentList.recipes.length !== 1 ? 'ים' : ''}
           </p>
         </div>
         <button
           onClick={onViewList}
           className="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm"
         >
-          Show List
+          הצג רשימה
         </button>
       </div>
 
       {/* Progress Bar */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">Progress</span>
+          <span className="text-sm font-medium text-gray-700">התקדמות</span>
           <span className="text-sm text-gray-600">
-            {stats.completedItems} / {stats.totalItems} completed
+            {stats.completedItems} / {stats.totalItems} הושלמו
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -83,21 +83,21 @@ const CurrentShoppingList = ({ onViewList }) => {
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="text-center">
           <div className="text-lg font-bold text-gray-900">{stats.totalItems}</div>
-          <div className="text-xs text-gray-600">Total Items</div>
+          <div className="text-xs text-gray-600">סך הכל פריטים</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-green-600">{stats.completedItems}</div>
-          <div className="text-xs text-gray-600">Completed</div>
+          <div className="text-xs text-gray-600">הושלמו</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-orange-600">{stats.remainingItems}</div>
-          <div className="text-xs text-gray-600">Remaining</div>
+          <div className="text-xs text-gray-600">נותרו</div>
         </div>
       </div>
 
       {/* Recipes */}
       <div className="mb-4">
-        <h4 className="text-sm font-semibold text-gray-800 mb-2">Recipes:</h4>
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">מתכונים:</h4>
         <div className="flex flex-wrap gap-2">
           {(currentList.recipes || []).slice(0, 3).map((recipe, index) => (
             <span
@@ -117,26 +117,28 @@ const CurrentShoppingList = ({ onViewList }) => {
 
       {/* Quick Preview of Items */}
       <div>
-        <h4 className="text-sm font-semibold text-gray-800 mb-2">Recent Items:</h4>
-        <div className="space-y-1">
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">פריטים אחרונים:</h4>
+        <div className="space-y-2">
           {(currentList.items || []).slice(0, 3).map((item, index) => (
-            <div key={index} className="flex items-center text-sm">
-              <div className={`w-3 h-3 rounded-full mr-2 ${
+            <div key={index} className="flex items-start text-sm gap-2">
+              <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
                 item.checked ? 'bg-green-500' : 'bg-gray-300'
               }`}></div>
-              <span className={`flex-1 ${
-                item.checked ? 'text-green-600 line-through' : 'text-gray-700'
-              }`}>
-                {item.name}
-              </span>
-              <span className="text-xs text-gray-500 ml-2">
-                {item.category}
-              </span>
+              <div className="flex-1 min-w-0">
+                <span className={`block ${
+                  item.checked ? 'text-green-600 line-through' : 'text-gray-700'
+                }`}>
+                  {item.name}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {item.category}
+                </span>
+              </div>
             </div>
           ))}
           {(currentList.items || []).length > 3 && (
             <div className="text-xs text-gray-500 mt-2">
-              +{(currentList.items || []).length - 3} more items
+              +{(currentList.items || []).length - 3} פריטים נוספים
             </div>
           )}
         </div>

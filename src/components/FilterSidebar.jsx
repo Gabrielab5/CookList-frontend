@@ -108,9 +108,9 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
     });
   };
 
-  const availableTags = ['Kosher', 'Vegan', 'Gluten-Free', 'Vegetarian', 'Dairy-Free', 'Low-Carb', 'Keto', 'Paleo', 'Mediterranean', 'Asian', 'Mexican', 'Italian'];
-  const categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Appetizer', 'Soup', 'Salad', 'Pasta', 'Meat', 'Seafood', 'Vegetarian'];
-  const pantryItems = ['Rice', 'Pasta', 'Bread', 'Flour', 'Sugar', 'Salt', 'Pepper', 'Olive Oil', 'Butter', 'Eggs', 'Milk', 'Cheese', 'Tomatoes', 'Onions', 'Garlic'];
+  const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'];
+  const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים', 'צמחוני'];
+  const pantryItems = ['אורז', 'פסטה', 'לחם', 'קמח', 'סוכר', 'מלח', 'פלפל', 'שמן זית', 'חמאה', 'ביצים', 'חלב', 'גבינה', 'עגבניות', 'בצלים', 'שום'];
 
   const hasActiveFilters = selectedTags.length > 0 || ingredientSearch || excludeIngredients || 
     selectedCategories.length > 0 || selectedPantryItems.length > 0 || prepTimeRange || 
@@ -118,33 +118,33 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-8 h-fit max-h-screen overflow-y-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-8">Filter & Sort Recipes</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-8">סנן ומיין מתכונים</h2>
       
       {/* Sort Options */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Sort by</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">מיין לפי</h3>
         <select
           value={sortBy}
           onChange={(e) => handleSortChange(e.target.value)}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
         >
-          <option value="name">Name (A-Z)</option>
-          <option value="name-desc">Name (Z-A)</option>
-          <option value="prepTime">Prep Time (Shortest)</option>
-          <option value="prepTime-desc">Prep Time (Longest)</option>
-          <option value="servings">Servings (Fewest)</option>
-          <option value="servings-desc">Servings (Most)</option>
-          <option value="category">Category</option>
+          <option value="name">שם (א-ת)</option>
+          <option value="name-desc">שם (ת-א)</option>
+          <option value="prepTime">זמן הכנה (הקצר ביותר)</option>
+          <option value="prepTime-desc">זמן הכנה (הארוך ביותר)</option>
+          <option value="servings">מספר מנות (הפחות)</option>
+          <option value="servings-desc">מספר מנות (הכי הרבה)</option>
+          <option value="category">קטגוריה</option>
         </select>
       </div>
 
       {/* Include Ingredients */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Must include ingredients</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">חייב להכיל מרכיבים</h3>
         <div className="relative">
           <input
             type="text"
-            placeholder="Search ingredients to include"
+            placeholder="חפש מרכיבים לכלול"
             value={ingredientSearch}
             onChange={(e) => handleIngredientSearch(e.target.value)}
             className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
@@ -162,11 +162,11 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
 
       {/* Exclude Ingredients */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Exclude ingredients</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">לא להכיל מרכיבים</h3>
         <div className="relative">
           <input
             type="text"
-            placeholder="Search ingredients to exclude"
+            placeholder="חפש מרכיבים לא לכלול"
             value={excludeIngredients}
             onChange={(e) => handleExcludeIngredients(e.target.value)}
             className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-lg"
@@ -184,7 +184,7 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
 
       {/* Categories */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Categories</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">קטגוריות</h3>
         <div className="grid grid-cols-2 gap-2">
           {categories.map((category) => (
             <label key={category} className="flex items-center cursor-pointer group">
@@ -217,7 +217,7 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
 
       {/* Dietary Tags */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Dietary & Lifestyle</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">תזונה ואורח חיים</h3>
         <div className="space-y-3">
           {availableTags.map((tag) => (
             <label key={tag} className="flex items-center cursor-pointer group">
@@ -250,7 +250,7 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
 
       {/* Pantry Items */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Use pantry items</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">השתמש במוצרי המזווה</h3>
         <div className="grid grid-cols-2 gap-2">
           {pantryItems.map((item) => (
             <label key={item} className="flex items-center cursor-pointer group">
@@ -283,48 +283,48 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
 
       {/* Prep Time */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Prep Time</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">זמן הכנה</h3>
         <select
           value={prepTimeRange}
           onChange={(e) => handlePrepTimeChange(e.target.value)}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
         >
-          <option value="">Any time</option>
-          <option value="quick">Quick (15 min or less)</option>
-          <option value="short">Short (16-30 min)</option>
-          <option value="medium">Medium (31-60 min)</option>
-          <option value="long">Long (1+ hours)</option>
+          <option value="">כל זמן הכנה</option>
+          <option value="quick">מהיר (15 דקות או פחות)</option>
+          <option value="short">קצר (16-30 דקות)</option>
+          <option value="medium">בינוני (31-60 דקות)</option>
+          <option value="long">ארוך (שעה ומעלה)</option>
         </select>
       </div>
 
       {/* Servings */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Servings</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">מספר מנות</h3>
         <select
           value={servingsRange}
           onChange={(e) => handleServingsChange(e.target.value)}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
         >
-          <option value="">Any servings</option>
-          <option value="1-2">1-2 servings</option>
-          <option value="3-4">3-4 servings</option>
-          <option value="5-6">5-6 servings</option>
-          <option value="7+">7+ servings</option>
+          <option value="">כל מספר מנות</option>
+          <option value="1-2">1-2 מנות</option>
+          <option value="3-4">3-4 מנות</option>
+          <option value="5-6">5-6 מנות</option>
+          <option value="7+">7+ מנות</option>
         </select>
       </div>
 
       {/* Difficulty */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Difficulty Level</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">רמת קושי</h3>
         <select
           value={difficultyLevel}
           onChange={(e) => handleDifficultyChange(e.target.value)}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
         >
-          <option value="">Any difficulty</option>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
+          <option value="">כל רמת קושי</option>
+          <option value="easy">קל</option>
+          <option value="medium">בינוני</option>
+          <option value="hard">קשה</option>
         </select>
       </div>
 
@@ -334,7 +334,7 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
           onClick={clearAllFilters}
           className="w-full mt-8 px-6 py-3 text-base font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
         >
-          Clear all filters
+          נקה את כל המסננים
         </button>
       )}
     </div>

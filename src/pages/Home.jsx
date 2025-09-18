@@ -186,7 +186,7 @@ const Home = () => {
 
     const handleGenerateShoppingList = () => {
         if (selectedRecipes.length === 0) {
-            alert('Please select at least one recipe to generate a shopping list.');
+            alert('אנא בחר לפחות מתכון אחד כדי ליצור רשימת קניות.');
             return;
         }
         setShowShoppingList(true);
@@ -201,7 +201,7 @@ const Home = () => {
         localStorage.removeItem('currentShoppingList');
         
         // Show success message or redirect
-        alert('Shopping list added to history successfully!');
+        alert('רשימת הקניות נוספה להיסטוריה בהצלחה!');
         setShowShoppingList(false);
     };
 
@@ -268,7 +268,7 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Header onLogout={() => console.log('Logout')} />
+            <Header onLogout={() => {}} />
             
             <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-8">
                 {/* Current Shopping List */}
@@ -279,27 +279,29 @@ const Home = () => {
                     <div className="w-96 flex-shrink-0">
                         <FilterSidebar 
                             onFilterChange={handleFilterChange}
-                            onIngredientSearch={(search) => console.log('Search:', search)}
+                            onIngredientSearch={(search) => {
+                                // Handle ingredient search if needed
+                            }}
                         />
-                    </div>
+                        </div>
 
                     {/* Main Content */}
                     <div className="flex-1">
                         {/* Recipes Header */}
                         <div className="flex justify-between items-center mb-10">
-                            <h2 className="text-4xl font-bold text-gray-900">Recipes</h2>
+                            <h2 className="text-4xl font-bold text-gray-900">מתכונים</h2>
                             <div className="flex items-center gap-6">
                                 {selectedRecipes.length > 0 && (
-                                    <button
+                            <button
                                         onClick={handleGenerateShoppingList}
                                         className="px-8 py-4 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors duration-200 shadow-md hover:shadow-lg text-lg"
-                                    >
-                                        Generate Shopping List ({selectedRecipes.length})
-                                    </button>
+                            >
+                                        צור רשימת קניות ({selectedRecipes.length})
+                            </button>
                                 )}
                                 <AddRecipeButton onClick={handleAddRecipe} />
-                            </div>
                         </div>
+                    </div>
 
                         {/* Recipe Grid */}
                         {filteredRecipes.length > 0 ? (
@@ -322,14 +324,14 @@ const Home = () => {
                                         )}
                                     </div>
                                 ))}
-                            </div>
+                    </div>
                         ) : (
                             <div className="text-center py-16">
                                 <svg className="w-20 h-20 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.576" />
                                 </svg>
-                                <h3 className="text-2xl font-semibold text-gray-900 mb-3">No recipes found</h3>
-                                <p className="text-gray-600 mb-6 text-lg">Try adjusting your filters or search terms.</p>
+                                <h3 className="text-2xl font-semibold text-gray-900 mb-3">לא נמצאו מתכונים</h3>
+                                <p className="text-gray-600 mb-6 text-lg">נסה להתאים את המסננים או מונחי החיפוש שלך.</p>
                                 <button
                                     onClick={() => setFilters({ 
                                         tags: [], 
@@ -344,17 +346,17 @@ const Home = () => {
                                     })}
                                     className="px-6 py-3 text-orange-600 hover:text-orange-700 font-medium text-lg"
                                 >
-                                    Clear filters
+                                    נקה מסננים
                                 </button>
-                            </div>
+                </div>
                         )}
 
                         {/* Selected Recipes Summary */}
                         {selectedRecipes.length > 0 && (
                             <div className="mt-10 bg-white rounded-xl shadow-md p-8">
                                 <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                                    Selected Recipes ({selectedRecipes.length})
-                                </h3>
+                                    מתכונים נבחרים ({selectedRecipes.length})
+                        </h3>
                                 <div className="flex flex-wrap gap-3">
                                     {selectedRecipes.map(recipe => (
                                         <span
@@ -373,11 +375,11 @@ const Home = () => {
                                         </span>
                                     ))}
                                 </div>
-                            </div>
+                        </div>
                         )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
             {/* Add Recipe Modal */}
             <AddRecipeModal

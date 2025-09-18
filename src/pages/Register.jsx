@@ -34,29 +34,29 @@ const Register = () => {
         const newErrors = {};
         
         if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
+            newErrors.name = 'שם נדרש';
         } else if (formData.name.trim().length < 2) {
-            newErrors.name = 'Name must be at least 2 characters';
+            newErrors.name = 'השם חייב להכיל לפחות 2 תווים';
         }
         
         if (!formData.email) {
-            newErrors.email = 'Email is required';
+            newErrors.email = 'כתובת אימייל נדרשת';
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
+            newErrors.email = 'אנא הזן כתובת אימייל תקינה';
         }
         
         if (!formData.password) {
-            newErrors.password = 'Password is required';
+            newErrors.password = 'סיסמה נדרשת';
         } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
+            newErrors.password = 'הסיסמה חייבת להכיל לפחות 6 תווים';
         } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-            newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+            newErrors.password = 'הסיסמה חייבת להכיל לפחות אות גדולה אחת, אות קטנה אחת וספרה אחת';
         }
         
         if (!formData.confirmPassword) {
-            newErrors.confirmPassword = 'Please confirm your password';
+            newErrors.confirmPassword = 'אנא אשר את הסיסמה שלך';
         } else if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
+            newErrors.confirmPassword = 'הסיסמאות אינן תואמות';
         }
         
         setErrors(newErrors);
@@ -102,18 +102,18 @@ const Register = () => {
                         <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent mb-3">
                             CookList
                         </h1>
-                        <p className="text-gray-600 text-lg font-medium">Organize your recipes, plan your meals</p>
+                        <p className="text-gray-600 text-lg font-medium">ארגן את המתכונים שלך, תכנן את הארוחות שלך</p>
                     </div>
                     
                     <div className="text-center mb-10">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-3">Create account</h2>
-                        <p className="text-gray-600 text-lg">Join CookList and start organizing your recipes</p>
+                        <h2 className="text-4xl font-bold text-gray-900 mb-3">צור חשבון</h2>
+                        <p className="text-gray-600 text-lg">הצטרף ל-CookList והתחל לארגן את המתכונים שלך</p>
                     </div>
 
                     <form onSubmit={handleRegister} className="space-y-5">
                         <AuthInput
                             type="text"
-                            placeholder="Enter your full name"
+                            placeholder="הזן את השם המלא שלך"
                             value={formData.name}
                             onChange={handleInputChange('name')}
                             icon={UserIcon}
@@ -123,7 +123,7 @@ const Register = () => {
 
                         <AuthInput
                             type="email"
-                            placeholder="Enter your email"
+                            placeholder="הזן את כתובת האימייל שלך"
                             value={formData.email}
                             onChange={handleInputChange('email')}
                             icon={EmailIcon}
@@ -133,7 +133,7 @@ const Register = () => {
 
                         <AuthInput
                             type="password"
-                            placeholder="Create a password"
+                            placeholder="צור סיסמה"
                             value={formData.password}
                             onChange={handleInputChange('password')}
                             icon={LockIcon}
@@ -143,7 +143,7 @@ const Register = () => {
 
                         <AuthInput
                             type="password"
-                            placeholder="Confirm your password"
+                            placeholder="אשר את הסיסמה שלך"
                             value={formData.confirmPassword}
                             onChange={handleInputChange('confirmPassword')}
                             icon={LockIcon}
@@ -162,7 +162,7 @@ const Register = () => {
                             disabled={loading}
                             icon={UserIcon}
                         >
-                            {loading ? 'Creating account...' : 'Create account'}
+                            {loading ? 'יוצר חשבון...' : 'צור חשבון'}
                         </AuthButton>
 
                         <div className="relative my-8">
@@ -170,7 +170,7 @@ const Register = () => {
                                 <div className="w-full border-t border-gray-300" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-gray-50 text-gray-500 font-medium">Or continue with</span>
+                                <span className="px-4 bg-gray-50 text-gray-500 font-medium">או המשך עם</span>
                             </div>
                         </div>
 
@@ -181,18 +181,18 @@ const Register = () => {
                             disabled={loading}
                             icon={GoogleIcon}
                         >
-                            Sign up with Google
+                            הירשם עם Google
                         </AuthButton>
                     </form>
 
                     <div className="mt-8 text-center">
                         <p className="text-gray-600">
-                            Already have an account?{' '}
+                            כבר יש לך חשבון?{' '}
                             <Link 
                                 to="/login" 
                                 className="font-semibold text-orange-600 hover:text-orange-500 transition-colors duration-200 underline decoration-2 underline-offset-2"
                             >
-                                Log in
+                                התחבר
                             </Link>
                         </p>
                     </div>

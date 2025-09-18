@@ -17,15 +17,15 @@ const Login = () => {
         const newErrors = {};
         
         if (!email) {
-            newErrors.email = 'Email is required';
+            newErrors.email = 'כתובת אימייל נדרשת';
         } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'Please enter a valid email address';
+            newErrors.email = 'אנא הזן כתובת אימייל תקינה';
         }
         
         if (!password) {
-            newErrors.password = 'Password is required';
+            newErrors.password = 'סיסמה נדרשת';
         } else if (password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
+            newErrors.password = 'הסיסמה חייבת להכיל לפחות 6 תווים';
         }
         
         setErrors(newErrors);
@@ -71,18 +71,18 @@ const Login = () => {
                         <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent mb-3">
                             CookList
                         </h1>
-                        <p className="text-gray-600 text-lg font-medium">Organize your recipes, plan your meals</p>
+                        <p className="text-gray-600 text-lg font-medium">ארגן את המתכונים שלך, תכנן את הארוחות שלך</p>
                     </div>
                     
                     <div className="text-center mb-10">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-3">Welcome back</h2>
-                        <p className="text-gray-600 text-lg">Sign in to your account</p>
+                        <h2 className="text-4xl font-bold text-gray-900 mb-3">ברוכים השבים</h2>
+                        <p className="text-gray-600 text-lg">התחבר לחשבון שלך</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <AuthInput
                             type="email"
-                            placeholder="Enter your email"
+                            placeholder="הזן את כתובת האימייל שלך"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             icon={EmailIcon}
@@ -92,7 +92,7 @@ const Login = () => {
 
                         <AuthInput
                             type="password"
-                            placeholder="Enter your password"
+                            placeholder="הזן את הסיסמה שלך"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             icon={LockIcon}
@@ -111,7 +111,7 @@ const Login = () => {
                             disabled={loading}
                             icon={EmailIcon}
                         >
-                            {loading ? 'Signing in...' : 'Sign in with Email'}
+                            {loading ? 'מתחבר...' : 'התחבר עם אימייל'}
                         </AuthButton>
 
                         <div className="relative my-8">
@@ -119,7 +119,7 @@ const Login = () => {
                                 <div className="w-full border-t border-gray-300" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-gray-50 text-gray-500 font-medium">Or continue with</span>
+                                <span className="px-4 bg-gray-50 text-gray-500 font-medium">או המשך עם</span>
                             </div>
                         </div>
 
@@ -130,18 +130,18 @@ const Login = () => {
                             disabled={loading}
                             icon={GoogleIcon}
                         >
-                            Sign in with Google
+                            התחבר עם Google
                         </AuthButton>
                     </form>
 
                     <div className="mt-8 text-center">
                         <p className="text-gray-600">
-                            Don't have an account?{' '}
+                            אין לך חשבון?{' '}
                             <Link 
                                 to="/register" 
                                 className="font-semibold text-orange-600 hover:text-orange-500 transition-colors duration-200 underline decoration-2 underline-offset-2"
                             >
-                                Join now
+                                הצטרף עכשיו
                             </Link>
                         </p>
                     </div>

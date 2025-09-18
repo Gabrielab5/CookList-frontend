@@ -16,8 +16,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Appetizer', 'Soup', 'Salad', 'Pasta', 'Meat', 'Seafood'];
-  const availableTags = ['Kosher', 'Vegan', 'Gluten-Free', 'Vegetarian', 'Dairy-Free', 'Low-Carb', 'Keto', 'Paleo', 'Mediterranean', 'Asian', 'Mexican', 'Italian'];
+  const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים'];
+  const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'];
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -99,35 +99,35 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     const newErrors = {};
 
     // Required fields validation
-    if (!formData.name.trim()) newErrors.name = 'Recipe name is required';
-    if (!formData.category) newErrors.category = 'Category is required';
-    if (!formData.prepTime) newErrors.prepTime = 'Prep time is required';
-    if (!formData.servings) newErrors.servings = 'Servings is required';
-    if (formData.tags.length === 0) newErrors.tags = 'At least one tag is required';
+    if (!formData.name.trim()) newErrors.name = 'שם המתכון נדרש';
+    if (!formData.category) newErrors.category = 'קטגוריה נדרשת';
+    if (!formData.prepTime) newErrors.prepTime = 'זמן הכנה נדרש';
+    if (!formData.servings) newErrors.servings = 'מספר מנות נדרש';
+    if (formData.tags.length === 0) newErrors.tags = 'נדרש לפחות תג אחד';
 
     // Numeric validation
     if (formData.prepTime && (isNaN(formData.prepTime) || formData.prepTime <= 0)) {
-      newErrors.prepTime = 'Prep time must be a positive number';
+      newErrors.prepTime = 'זמן הכנה חייב להיות מספר חיובי';
     }
     if (formData.servings && (isNaN(formData.servings) || formData.servings <= 0)) {
-      newErrors.servings = 'Servings must be a positive number';
+      newErrors.servings = 'מספר מנות חייב להיות מספר חיובי';
     }
 
     // Ingredients validation
     const validIngredients = formData.ingredients.filter(ing => ing.trim());
     if (validIngredients.length === 0) {
-      newErrors.ingredients = 'At least one ingredient is required';
+      newErrors.ingredients = 'נדרש לפחות מרכיב אחד';
     }
 
     // Instructions validation
     const validInstructions = formData.instructions.filter(inst => inst.trim());
     if (validInstructions.length === 0) {
-      newErrors.instructions = 'At least one instruction is required';
+      newErrors.instructions = 'נדרש לפחות הוראה אחת';
     }
 
     // Image URL validation (optional but if provided, should be valid)
     if (formData.image && !isValidUrl(formData.image)) {
-      newErrors.image = 'Please enter a valid image URL';
+      newErrors.image = 'אנא הזן כתובת תמונה תקינה';
     }
 
     setErrors(newErrors);
@@ -212,7 +212,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-3xl font-bold text-gray-900">Add New Recipe</h2>
+          <h2 className="text-3xl font-bold text-gray-900">הוסף מתכון חדש</h2>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -231,13 +231,13 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
             {/* Recipe Name */}
             <div className="md:col-span-2">
               <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Recipe Name *
+                שם המתכון *
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Enter recipe name"
+                placeholder="הזן שם מתכון"
                 className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
                   errors.name ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
                 }`}
@@ -250,7 +250,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
             {/* Category */}
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Category *
+                קטגוריה *
               </label>
               <select
                 value={formData.category}
@@ -260,7 +260,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                 }`}
                 disabled={loading}
               >
-                <option value="">Select category</option>
+                <option value="">בחר קטגוריה</option>
                 {categories.map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
@@ -271,7 +271,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
             {/* Prep Time */}
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Prep Time (minutes) *
+                זמן הכנה (דקות) *
               </label>
               <input
                 type="number"
@@ -290,7 +290,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
             {/* Servings */}
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Servings *
+                מספר מנות *
               </label>
               <input
                 type="number"
@@ -309,7 +309,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
             {/* Difficulty */}
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Difficulty Level
+                רמת קושי
               </label>
               <select
                 value={formData.difficulty}
@@ -317,17 +317,17 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
                 disabled={loading}
               >
-                <option value="">Select difficulty (optional)</option>
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
+                <option value="">בחר רמת קושי (אופציונלי)</option>
+                <option value="קל">קל</option>
+                <option value="בינוני">בינוני</option>
+                <option value="קשה">קשה</option>
               </select>
             </div>
 
             {/* Image URL */}
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-3">
-                Image URL (optional)
+                כתובת תמונה (אופציונלי)
               </label>
               <input
                 type="url"
@@ -346,7 +346,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
           {/* Ingredients */}
           <div>
             <label className="block text-lg font-semibold text-gray-800 mb-3">
-              Ingredients *
+              מרכיבים *
             </label>
             <div className="space-y-3">
               {formData.ingredients.map((ingredient, index) => (
@@ -380,7 +380,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               disabled={loading}
               className="mt-3 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 disabled:opacity-50"
             >
-              + Add Ingredient
+              + הוסף מרכיב
             </button>
             {errors.ingredients && <p className="text-red-600 text-sm mt-2">{errors.ingredients}</p>}
           </div>
@@ -388,7 +388,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
           {/* Instructions */}
           <div>
             <label className="block text-lg font-semibold text-gray-800 mb-3">
-              Instructions *
+              הוראות הכנה *
             </label>
             <div className="space-y-3">
               {formData.instructions.map((instruction, index) => (
@@ -425,7 +425,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               disabled={loading}
               className="mt-3 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 disabled:opacity-50"
             >
-              + Add Step
+              + הוסף שלב
             </button>
             {errors.instructions && <p className="text-red-600 text-sm mt-2">{errors.instructions}</p>}
           </div>
@@ -433,7 +433,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
           {/* Tags */}
           <div>
             <label className="block text-lg font-semibold text-gray-800 mb-3">
-              Tags *
+              תגיות *
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {availableTags.map((tag) => (
@@ -493,7 +493,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               disabled={loading}
               className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
             >
-              Cancel
+              ביטול
             </button>
             <button
               type="submit"
@@ -506,10 +506,10 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Adding Recipe...
+                  מוסיף מתכון...
                 </>
               ) : (
-                'Add Recipe'
+                'הוסף מתכון'
               )}
             </button>
           </div>

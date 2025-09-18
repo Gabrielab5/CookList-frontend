@@ -25,9 +25,9 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
   const adjustedIngredients = getAdjustedIngredients();
 
   const tabs = [
-    { id: 'ingredients', label: 'Ingredients', icon: '🥘' },
-    { id: 'instructions', label: 'Instructions', icon: '📝' },
-    { id: 'details', label: 'Details', icon: 'ℹ️' }
+    { id: 'ingredients', label: 'מרכיבים', icon: '🥘' },
+    { id: 'instructions', label: 'הוראות', icon: '📝' },
+    { id: 'details', label: 'פרטים', icon: 'ℹ️' }
   ];
 
   return (
@@ -60,8 +60,8 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
           {/* Recipe Title Overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-8">
             <h1 className="text-4xl font-bold text-white mb-2">{recipe.name}</h1>
-            <p className="text-white/90 text-lg mb-4">{recipe.description}</p>
-            
+           
+    
             {/* Quick Info */}
             <div className="flex flex-wrap gap-4 mb-4">
               <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
@@ -74,13 +74,13 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                 <svg className="w-5 h-5 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="text-white font-medium">{servings} servings</span>
+                <span className="text-white font-medium">{servings} מנות</span>
               </div>
               <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
                 <svg className="w-5 h-5 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-white font-medium">{recipe.difficulty || 'Medium'}</span>
+                <span className="text-white font-medium">{recipe.difficulty || 'בינוני'}</span>
               </div>
             </div>
 
@@ -126,9 +126,9 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
             {activeTab === 'ingredients' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900">Ingredients</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">מרכיבים</h3>
                   <div className="flex items-center gap-4">
-                    <label className="text-sm font-medium text-gray-700">Servings:</label>
+                    <label className="text-sm font-medium text-gray-700">מנות:</label>
                     <div className="flex items-center border border-gray-300 rounded-lg">
                       <button
                         onClick={() => setServings(Math.max(1, servings - 1))}
@@ -174,7 +174,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                     <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                     </svg>
-                    Add to Shopping List
+                    הוסף לרשימת קניות
                   </button>
                 </div>
               </div>
@@ -183,7 +183,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
             {/* Instructions Tab */}
             {activeTab === 'instructions' && (
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Instructions</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">הוראות הכנה</h3>
                 <div className="space-y-6">
                   {(recipe.instructions || []).map((instruction, index) => (
                     <div key={index} className="flex gap-4">
@@ -203,12 +203,12 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
-                    Pro Tips
+                    טיפים מקצועיים
                   </h4>
                   <ul className="text-blue-800 space-y-2">
-                    <li>• Let the dish rest for 5-10 minutes before serving for better flavor</li>
-                    <li>• Taste and adjust seasoning as you cook</li>
-                    <li>• Use fresh ingredients when possible for the best results</li>
+                    <li>• תן למנה לנוח חמש עד עשר דקות לפני ההגשה לטעם טוב יותר</li>
+                    <li>• טעם והתאם תבלינים תוך כדי הבישול</li>
+                    <li>• השתמש במרכיבים טריים ככל האפשר לתוצאות הטובות ביותר</li>
                   </ul>
                 </div>
               </div>
@@ -217,51 +217,51 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
             {/* Details Tab */}
             {activeTab === 'details' && (
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Recipe Details</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">פרטי המתכון</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Basic Information */}
                   <div className="bg-gray-50 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h4>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">מידע בסיסי</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Category:</span>
+                        <span className="text-gray-600">קטגוריה:</span>
                         <span className="font-medium text-gray-900">{recipe.category}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Prep Time:</span>
+                        <span className="text-gray-600">זמן הכנה:</span>
                         <span className="font-medium text-gray-900">{recipe.prepTime}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Servings:</span>
+                        <span className="text-gray-600">מנות:</span>
                         <span className="font-medium text-gray-900">{recipe.servings}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Difficulty:</span>
-                        <span className="font-medium text-gray-900">{recipe.difficulty || 'Medium'}</span>
+                        <span className="text-gray-600">רמת קושי:</span>
+                        <span className="font-medium text-gray-900">{recipe.difficulty || 'בינוני'}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Nutritional Info */}
                   <div className="bg-gray-50 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Nutritional Information</h4>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">מידע תזונתי</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Calories per serving:</span>
+                        <span className="text-gray-600">קלוריות למנה:</span>
                         <span className="font-medium text-gray-900">~{Math.floor(Math.random() * 200) + 300}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Protein:</span>
-                        <span className="font-medium text-gray-900">~{Math.floor(Math.random() * 20) + 15}g</span>
+                        <span className="text-gray-600">חלבון:</span>
+                        <span className="font-medium text-gray-900">~{Math.floor(Math.random() * 20) + 15}גרם</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Carbs:</span>
-                        <span className="font-medium text-gray-900">~{Math.floor(Math.random() * 30) + 20}g</span>
+                        <span className="text-gray-600">פחמימות:</span>
+                        <span className="font-medium text-gray-900">~{Math.floor(Math.random() * 30) + 20}גרם</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Fat:</span>
-                        <span className="font-medium text-gray-900">~{Math.floor(Math.random() * 15) + 10}g</span>
+                        <span className="text-gray-600">שומן:</span>
+                        <span className="font-medium text-gray-900">~{Math.floor(Math.random() * 15) + 10}גרם</span>
                       </div>
                     </div>
                   </div>
@@ -273,23 +273,23 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Video Tutorial
+                    הדרכה בוידאו
                   </h4>
                   <p className="text-red-800 mb-4">
-                    Watch a step-by-step video tutorial for this recipe
+                    צפה בהדרכה וידאו שלב אחר שלב למתכון הזה
                   </p>
                   <button className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z"/>
                     </svg>
-                    Watch Video
+                    צפה בוידאו
                   </button>
                 </div>
 
                 {/* Tags */}
                 {recipe.tags && recipe.tags.length > 0 && (
                   <div className="mt-8">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Tags</h4>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">תגיות</h4>
                     <div className="flex flex-wrap gap-2">
                       {(recipe.tags || []).map((tag, index) => (
                         <span
@@ -313,13 +313,13 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
             onClick={onClose}
             className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
           >
-            Close
+            סגור
           </button>
           <button
             onClick={() => onAddToShoppingList && onAddToShoppingList(recipe)}
             className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors duration-200"
           >
-            Add to Shopping List
+            הוסף לרשימת קניות
           </button>
         </div>
       </div>
