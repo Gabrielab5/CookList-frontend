@@ -1,13 +1,14 @@
-const API_URL = import.meta.env.REACT_APP_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export async function fetchRecipes() {
   const res = await fetch(`${API_URL}/recipes`);
   if (!res.ok) {
     throw new Error("Failed to fetch recipes");
   }
-  const data = await res.json();
-  console.log("Fetched recipes:", data);
-  return data;
+  const json = await res.json();
+  console.log("Fetched recipes:", json);
+  // L’API renvoie { success, data, total }. On renvoie directement le tableau.
+  return Array.isArray(json) ? json : (json.data ?? []);
 }
 
 export async function addRecipe(newRecipe) {
