@@ -1,7 +1,7 @@
 import React from 'react';
 
 const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavorite }) => {
-  const { id, name, image, category, tags, prepTime, prepTimeMinutes, servings } = recipe;
+  const { id, title, photoUrl, tags, category, difficulty, prepTime, steps, ingredients } = recipe;
 
   const handleCardClick = (e) => {
     // Prevent event bubbling when clicking on buttons
@@ -18,8 +18,8 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavor
     >
       <div className="relative overflow-hidden rounded-t-lg sm:rounded-t-xl">
         <img
-          src={image}
-          alt={name}
+          src={photoUrl}
+          alt={title}
           className="w-full h-48 sm:h-56 md:h-64 object-cover"
           onError={(e) => {
             e.target.src = 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
@@ -54,21 +54,21 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavor
           
           {/* Prep Time */}
           <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-700">
-            {prepTimeMinutes} דקות
+            {prepTime} דקות
           </div>
         </div>
       </div>
       
       <div className="p-4 sm:p-6">
         <h3 className="font-semibold text-gray-900 text-lg sm:text-xl mb-2 sm:mb-3 line-clamp-2">
-          {name}
+          {title}
         </h3>
         <div className="flex items-center justify-between text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
           <span className="flex items-center">
             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {servings} מנות
+            {/* {servings} מנות */}
           </span>
           <span className="text-orange-600 font-semibold text-base sm:text-lg">{category}</span>
         </div>
