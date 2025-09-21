@@ -37,8 +37,8 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
         <div className="relative">
           <div className="h-48 sm:h-64 lg:h-80 overflow-hidden rounded-t-lg sm:rounded-t-xl">
             <img
-              src={recipe.image}
-              alt={recipe.name}
+              src={recipe.photoUrl}
+              alt={recipe.title}
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.src = 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
@@ -59,7 +59,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
 
           {/* Recipe Title Overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">{recipe.name}</h1>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">{recipe.title}</h1>
            
     
             {/* Quick Info */}
@@ -68,7 +68,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-white font-medium text-sm sm:text-base">{recipe.prepTimeMinutes} דקות</span>
+                <span className="text-white font-medium text-sm sm:text-base">{recipe.prepTime} דקות</span>
               </div>
               <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,7 +230,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">זמן הכנה:</span>
-                        <span className="font-medium text-gray-900">{recipe.prepTimeMinutes} דקות</span>
+                        <span className="font-medium text-gray-900">{recipe.prepTime} דקות</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">מנות:</span>
