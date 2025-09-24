@@ -5,6 +5,9 @@ import FilterSidebar from "../components/FilterSidebar";
 import RecipeCard from "../components/RecipeCard";
 import AddRecipeButton from "../components/AddRecipeButton";
 import AddRecipeModal from "../components/AddRecipeModal";
+import AiRecipeButton from "../components/AiRecipeButton";
+import AiRecipePromptModal from "../components/AiRecipePromptModal";
+import AiRecipePreviewModal from "../components/AiRecipePreviewModal";
 import ShoppingList from "../components/ShoppingList";
 import CurrentShoppingList from "../components/CurrentShoppingList";
 import RecipeDetailModal from "../components/RecipeDetailModal";
@@ -15,6 +18,7 @@ import {
   buildShoppingList,
   getShoppingList,
 } from "../api";
+import { aiRecipeService } from "../services/api";
 
 const Home = () => {
   const location = useLocation();
@@ -40,6 +44,11 @@ const Home = () => {
   const [selectedRecipeForDetails, setSelectedRecipeForDetails] = useState(null);
   const [isRecipeDetailModalOpen, setIsRecipeDetailModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // AI Recipe states
+  const [isAiPromptModalOpen, setIsAiPromptModalOpen] = useState(false);
+  const [isAiPreviewModalOpen, setIsAiPreviewModalOpen] = useState(false);
+  const [aiGeneratedRecipe, setAiGeneratedRecipe] = useState(null);
   const [favorites, setFavorites] = useState(() => {
     const savedFavorites = localStorage.getItem("favoriteRecipes");
     return savedFavorites ? JSON.parse(savedFavorites) : [];
@@ -141,6 +150,37 @@ const Home = () => {
     }
   };
 
+  // Handle AI recipe generation
+  const handleGenerateAiRecipe = async (prompt) => {
+    try {
+      const generatedRecipe = await aiRecipeService.generateRecipe(prompt);
+      setAiGeneratedRecipe(generatedRecipe);
+      setIsAiPreviewModalOpen(true);
+    } catch (err) {
+      console.error('Error generating AI recipe:', err);
+      throw new Error('שגיאה ביצירת המתכון עם AI');
+    }
+  };
+
+  // Handle adding AI generated recipe to user's recipes
+  const handleAddAiRecipe = async (recipe) => {
+    try {
+      const savedRecipe = await aiRecipeService.addAiRecipe(recipe);
+      setRecipes(prev => [savedRecipe, ...prev]);
+      alert('המתכון נוסף בהצלחה למתכונים שלך!');
+    } catch (err) {
+      console.error('Error adding AI recipe:', err);
+      // Fallback: add locally
+      const localRecipe = {
+        ...recipe,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+      setRecipes(prev => [localRecipe, ...prev]);
+      alert('המתכון נוסף למתכונים שלך (שמירה מקומית)');
+    }
+  };
+
   // Handle building shopping list via API
   const handleGenerateShoppingList = async () => {
     if (!selectedRecipes.length) {
@@ -199,8 +239,8 @@ const Home = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
+    return (
+        <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8">
         <CurrentShoppingList onViewList={handleViewCurrentList} />
@@ -211,7 +251,7 @@ const Home = () => {
                 onFilterChange={setFilters}
                 onIngredientSearch={(search) => {}}
               />
-            </div>
+                        </div>
           )}
           <div className="flex-1 min-w-0">
             {/* Header & Add Recipe Button */}
@@ -220,7 +260,7 @@ const Home = () => {
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
                   מתכונים
                 </h2>
-                <button
+                            <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium relative ${
                     isSidebarOpen
@@ -233,8 +273,8 @@ const Home = () => {
                   <span className="hidden sm:inline">
                     {isSidebarOpen ? "הסתר מסננים" : "הצג מסננים"}
                   </span>
-                </button>
-              </div>
+                            </button>
+                        </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 lg:gap-6">
                 {selectedRecipes.length > 0 && (
                   <button
@@ -244,9 +284,10 @@ const Home = () => {
                     צור רשימת קניות ({selectedRecipes.length})
                   </button>
                 )}
+                <AiRecipeButton onClick={() => setIsAiPromptModalOpen(true)} />
                 <AddRecipeButton onClick={() => setIsAddRecipeModalOpen(true)} />
               </div>
-            </div>
+                </div>
 
             {/* Recipe Grid */}
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -279,9 +320,9 @@ const Home = () => {
                 />
               ))}
             </div>
-          </div>
-        </div>
-      </div>
+                        </div>
+                    </div>
+                </div>
 
       <AddRecipeModal
         isOpen={isAddRecipeModalOpen}
@@ -298,6 +339,20 @@ const Home = () => {
             setSelectedRecipes(prev => [...prev, r]);
           setIsRecipeDetailModalOpen(false);
         }}
+      />
+
+      {/* AI Recipe Modals */}
+      <AiRecipePromptModal
+        isOpen={isAiPromptModalOpen}
+        onClose={() => setIsAiPromptModalOpen(false)}
+        onGenerate={handleGenerateAiRecipe}
+      />
+
+      <AiRecipePreviewModal
+        isOpen={isAiPreviewModalOpen}
+        onClose={() => setIsAiPreviewModalOpen(false)}
+        recipe={aiGeneratedRecipe}
+        onAddToRecipes={handleAddAiRecipe}
       />
     </div>
   );

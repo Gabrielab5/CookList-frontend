@@ -88,7 +88,26 @@ class ApiService {
   }
 }
 
+// AI Recipe Generation Methods
+class AiRecipeService {
+  constructor(apiService) {
+    this.api = apiService;
+  }
+
+  // Generate AI recipe from user prompt
+  async generateRecipe(prompt) {
+    return this.api.post('/ai/generate-recipe', { prompt });
+  }
+
+  // Add AI generated recipe to user's recipes
+  async addAiRecipe(recipe) {
+    return this.api.post('/recipes', recipe);
+  }
+}
+
 // Create singleton instance
 const apiService = new ApiService();
+const aiRecipeService = new AiRecipeService(apiService);
 
 export default apiService;
+export { aiRecipeService };
