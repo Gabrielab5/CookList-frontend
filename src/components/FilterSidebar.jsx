@@ -7,7 +7,6 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedPantryItems, setSelectedPantryItems] = useState([]);
   const [prepTimeRange, setPrepTimeRange] = useState('');
-  const [servingsRange, setServingsRange] = useState('');
   const [difficultyLevel, setDifficultyLevel] = useState('');
   const [sortBy, setSortBy] = useState('title');
 
@@ -54,10 +53,6 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
     updateFilters({ prepTimeRange: value });
   };
 
-  const handleServingsChange = (value) => {
-    setServingsRange(value);
-    updateFilters({ servingsRange: value });
-  };
 
   const handleDifficultyChange = (value) => {
     setDifficultyLevel(value);
@@ -77,7 +72,6 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
       categories: selectedCategories,
       pantryItems: selectedPantryItems,
       prepTimeRange,
-      servingsRange,
       difficultyLevel,
       sortBy,
       ...newFilters
@@ -92,7 +86,6 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
     setSelectedCategories([]);
     setSelectedPantryItems([]);
     setPrepTimeRange('');
-    setServingsRange('');
     setDifficultyLevel('');
     setSortBy('title');
     onFilterChange({
@@ -102,7 +95,6 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
       categories: [],
       pantryItems: [],
       prepTimeRange: '',
-      servingsRange: '',
       difficultyLevel: '',
       sortBy: 'title'
     });
@@ -114,7 +106,7 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
 
   const hasActiveFilters = selectedTags.length > 0 || ingredientSearch || excludeIngredients || 
     selectedCategories.length > 0 || selectedPantryItems.length > 0 || prepTimeRange || 
-    servingsRange || difficultyLevel || sortBy !== 'title';
+    difficultyLevel || sortBy !== 'title';
 
   return (
     <div className="bg-white rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 lg:p-8 h-fit max-h-screen overflow-y-auto">
@@ -295,21 +287,6 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
         </select>
       </div>
 
-      {/* Servings */}
-      <div className="mb-6 sm:mb-8">
-        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">מספר מנות</h3>
-        <select
-          value={servingsRange}
-          onChange={(e) => handleServingsChange(e.target.value)}
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg"
-        >
-          <option value="">כל מספר מנות</option>
-          <option value="1-2">1-2 מנות</option>
-          <option value="3-4">3-4 מנות</option>
-          <option value="5-6">5-6 מנות</option>
-          <option value="7+">7+ מנות</option>
-        </select>
-      </div>
 
       {/* Difficulty */}
       <div className="mb-6 sm:mb-8">

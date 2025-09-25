@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 
 const ShoppingHistory = () => {
   const navigate = useNavigate();
@@ -74,6 +75,7 @@ const ShoppingHistory = () => {
   if (shoppingLists.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <Header />
         {/* Header */}
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6">
@@ -114,6 +116,7 @@ const ShoppingHistory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6">

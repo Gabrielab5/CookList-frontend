@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ApiProvider } from './contexts/ApiContext';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -18,7 +19,9 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/home" element={
               <ProtectedRoute>
-                <Home />
+                <ErrorBoundary>
+                  <Home />
+                </ErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/favorites" element={

@@ -2,32 +2,82 @@ import React, { useState } from 'react';
 
 const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => {
   const [activeTab, setActiveTab] = useState('ingredients');
-  const [servings, setServings] = useState(recipe?.servings || 4);
 
-  if (!isOpen || !recipe) return null;
+  // Debug logging
+  console.log('RecipeDetailModal props:', { recipe, isOpen });
 
-  // Calculate adjusted ingredients based on servings
-  const getAdjustedIngredients = () => {
-    if (!recipe?.ingredients) return [];
-    const multiplier = servings / (recipe.servings || 4);
+  if (!isOpen) return null;
+  
+  if (!recipe) {
+    console.warn('RecipeDetailModal: No recipe provided');
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">שגיאה</h2>
+          <p className="text-gray-600 mb-6">לא ניתן לטעון את פרטי המתכון</p>
+          <button
+            onClick={onClose}
+            className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors duration-200"
+          >
+            סגור
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Process ingredients for display
+  const getDisplayIngredients = () => {
+    if (!recipe?.ingredients || !Array.isArray(recipe.ingredients)) return [];
+    
     return recipe.ingredients.map(ingredient => {
-      // Handle new ingredient structure (object with name, qty, unit)
-      if (typeof ingredient === 'object' && ingredient.name && ingredient.qty && ingredient.unit) {
-        const adjustedQuantity = parseFloat(ingredient.qty) * multiplier;
-        return `${adjustedQuantity.toFixed(adjustedQuantity % 1 === 0 ? 0 : 1)} ${ingredient.unit} ${ingredient.name}`;
+      // Handle string ingredients
+      if (typeof ingredient === 'string') {
+        return ingredient;
       }
-      // Handle old ingredient structure (string)
-      const match = ingredient.match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z]*)\s*(.*)$/);
-      if (match) {
-        const [, quantity, unit, name] = match;
-        const adjustedQuantity = parseFloat(quantity) * multiplier;
-        return `${adjustedQuantity.toFixed(adjustedQuantity % 1 === 0 ? 0 : 1)} ${unit} ${name}`.trim();
+      
+      // Handle object ingredients
+      if (typeof ingredient === 'object' && ingredient !== null) {
+        let name = '';
+        let qty = '';
+        let unit = '';
+        
+        // Try different possible structures
+        if (ingredient.name) {
+          name = ingredient.name;
+          qty = ingredient.qty || ingredient.quantity || '';
+          unit = ingredient.unit || '';
+        } else if (ingredient.ingredientName) {
+          name = ingredient.ingredientName;
+          qty = ingredient.qty || ingredient.quantity || '';
+          unit = ingredient.unit || '';
+        } else if (ingredient.text) {
+          return ingredient.text; // Already formatted text
+        } else if (ingredient.description) {
+          return ingredient.description; // Already formatted text
+        } else {
+          // Try to extract meaningful values
+          const values = Object.values(ingredient).filter(v => 
+            typeof v === 'string' && v.trim().length > 0
+          );
+          return values.join(' ') || 'מרכיב לא מזוהה';
+        }
+        
+        if (name) {
+          const cleanUnit = unit ? unit.trim() : '';
+          const cleanName = name.trim();
+          // Format: "quantity unit name" ensuring all parts are included
+          const parts = [qty, cleanUnit, cleanName].filter(part => part && String(part).trim().length > 0);
+          return parts.join(' ').replace(/\s+/g, ' ').trim();
+        }
       }
-      return ingredient;
-    });
+      
+      // Fallback
+      return 'מרכיב לא תקין';
+    }).filter(item => item && item !== 'מרכיב לא תקין');
   };
 
-  const adjustedIngredients = getAdjustedIngredients();
+  const displayIngredients = getDisplayIngredients();
 
   const tabs = [
     { id: 'ingredients', label: 'מרכיבים', icon: '🥘' },
@@ -74,12 +124,6 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="text-white font-medium text-sm sm:text-base">{recipe.prepTime} דקות</span>
-              </div>
-              <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span className="text-white font-medium text-sm sm:text-base">{servings} מנות</span>
               </div>
               <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,34 +174,12 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
             {/* Ingredients Tab */}
             {activeTab === 'ingredients' && (
               <div>
-                <div className="flex justify-between items-center mb-6">
+                <div className="mb-6">
                   <h3 className="text-2xl font-bold text-gray-900">מרכיבים</h3>
-                  <div className="flex items-center gap-4">
-                    <label className="text-sm font-medium text-gray-700">מנות:</label>
-                    <div className="flex items-center border border-gray-300 rounded-lg">
-                      <button
-                        onClick={() => setServings(Math.max(1, servings - 1))}
-                        className="px-3 py-2 hover:bg-gray-100 transition-colors duration-200"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                        </svg>
-                      </button>
-                      <span className="px-4 py-2 font-semibold">{servings}</span>
-                      <button
-                        onClick={() => setServings(servings + 1)}
-                        className="px-3 py-2 hover:bg-gray-100 transition-colors duration-200"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  {adjustedIngredients.map((ingredient, index) => (
+                  {displayIngredients.map((ingredient, index) => (
                     <div
                       key={index}
                       className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
@@ -236,10 +258,6 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                       <div className="flex justify-between">
                         <span className="text-gray-600">זמן הכנה:</span>
                         <span className="font-medium text-gray-900">{recipe.prepTime} דקות</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">מנות:</span>
-                        <span className="font-medium text-gray-900">{recipe.servings}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">רמת קושי:</span>

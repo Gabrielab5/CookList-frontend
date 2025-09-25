@@ -8,6 +8,7 @@ import AddRecipeModal from "../components/AddRecipeModal";
 import AiRecipeButton from "../components/AiRecipeButton";
 import AiRecipePromptModal from "../components/AiRecipePromptModal";
 import AiRecipePreviewModal from "../components/AiRecipePreviewModal";
+import SelectedRecipesManager from "../components/SelectedRecipesManager";
 import ShoppingList from "../components/ShoppingList";
 import CurrentShoppingList from "../components/CurrentShoppingList";
 import RecipeDetailModal from "../components/RecipeDetailModal";
@@ -93,14 +94,43 @@ const Home = () => {
       if (filters.categories?.length && !filters.categories.includes(recipe.category)) return false;
       if (filters.ingredientSearch) {
         const searchTerm = filters.ingredientSearch.toLowerCase();
-        if (!recipe.ingredients.some(i => i.toLowerCase().includes(searchTerm))) return false;
+        const ingredientMatches = recipe.ingredients.some(ingredient => {
+          // Handle both object and string ingredient formats
+          if (typeof ingredient === 'object' && ingredient.name) {
+            return ingredient.name.toLowerCase().includes(searchTerm);
+          } else if (typeof ingredient === 'string') {
+            return ingredient.toLowerCase().includes(searchTerm);
+          }
+          return false;
+        });
+        if (!ingredientMatches) return false;
       }
       if (filters.excludeIngredients) {
         const excludeTerm = filters.excludeIngredients.toLowerCase();
-        if (recipe.ingredients.some(i => i.toLowerCase().includes(excludeTerm))) return false;
+        const hasExcludedIngredient = recipe.ingredients.some(ingredient => {
+          // Handle both object and string ingredient formats
+          if (typeof ingredient === 'object' && ingredient.name) {
+            return ingredient.name.toLowerCase().includes(excludeTerm);
+          } else if (typeof ingredient === 'string') {
+            return ingredient.toLowerCase().includes(excludeTerm);
+          }
+          return false;
+        });
+        if (hasExcludedIngredient) return false;
       }
       if (filters.pantryItems?.length) {
-        if (!filters.pantryItems.some(item => recipe.ingredients.some(i => i.toLowerCase().includes(item.toLowerCase())))) return false;
+        const hasPantryItem = filters.pantryItems.some(item => 
+          recipe.ingredients.some(ingredient => {
+            // Handle both object and string ingredient formats
+            if (typeof ingredient === 'object' && ingredient.name) {
+              return ingredient.name.toLowerCase().includes(item.toLowerCase());
+            } else if (typeof ingredient === 'string') {
+              return ingredient.toLowerCase().includes(item.toLowerCase());
+            }
+            return false;
+          })
+        );
+        if (!hasPantryItem) return false;
       }
       if (filters.prepTimeRange) {
         const prepTime = recipe.prepTimeMinutes;
@@ -151,18 +181,54 @@ const Home = () => {
     try {
       setIsAddingRecipe(true);
       const savedRecipe = await addRecipe(newRecipe);
-      setRecipes(prev => [savedRecipe, ...prev]);
-      alert("המתכון נוסף בהצלחה!");
+      
+      // Add the recipe with a new flag for animation
+      const recipeWithAnimation = {
+        ...savedRecipe,
+        isNew: true
+      };
+      
+      setRecipes(prev => [recipeWithAnimation, ...prev]);
+      
+      // Remove the animation flag after a short delay
+      setTimeout(() => {
+        setRecipes(prev => prev.map(recipe => 
+          recipe._id === savedRecipe._id || recipe.id === savedRecipe.id
+            ? { ...recipe, isNew: false }
+            : recipe
+        ));
+      }, 1000);
+      
+      // Show success message with missing ingredients info if any
+      const successMessage = savedRecipe.message || "המתכון נוסף בהצלחה!";
+      alert(successMessage);
     } catch (err) {
       console.error("Error adding recipe:", err);
-      alert(err.message || "שגיאה בשמירת המתכון. המתכון נוסף מקומית בלבד.");
-      // Add locally as fallback
+      
+      // Check if it's a validation error or server error
+      if (err.message.includes('נדרש') || err.message.includes('תקינים')) {
+        alert(`שגיאת ולידציה: ${err.message}`);
+        return; // Don't add locally if it's a validation error
+      }
+      
+      alert("שגיאה בחיבור לשרת. המתכון נוסף מקומית בלבד.");
+      // Add locally as fallback only for server errors
       const localRecipe = {
         ...newRecipe,
         id: Date.now().toString(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        isNew: true
       };
       setRecipes(prev => [localRecipe, ...prev]);
+      
+      // Remove the animation flag after a short delay
+      setTimeout(() => {
+        setRecipes(prev => prev.map(recipe => 
+          recipe.id === localRecipe.id
+            ? { ...recipe, isNew: false }
+            : recipe
+        ));
+      }, 1000);
     } finally {
       setIsAddingRecipe(false);
     }
@@ -173,11 +239,72 @@ const Home = () => {
     try {
       setIsGeneratingAiRecipe(true);
       const generatedRecipe = await generateRecipe({ prompt });
-      setAiGeneratedRecipe(generatedRecipe);
+      
+      console.log('Generated recipe from API:', generatedRecipe);
+      console.log('Raw ingredients:', generatedRecipe.ingredients);
+      
+      // Process ingredients to ensure proper format
+      let processedIngredients = [];
+      if (Array.isArray(generatedRecipe.ingredients) && generatedRecipe.ingredients.length > 0) {
+        processedIngredients = generatedRecipe.ingredients.map(ing => {
+          console.log('Processing AI ingredient:', ing, 'Type:', typeof ing);
+          
+          if (typeof ing === 'string') {
+            return ing;
+          } else if (typeof ing === 'object' && ing !== null) {
+            // Handle populated ingredient from server
+            if (ing.ingredientId && ing.ingredientId.name) {
+              const qty = ing.qty || ing.quantity || '';
+              const unit = ing.unit || '';
+              const name = ing.ingredientId.name;
+              const parts = [qty, unit, name].filter(part => part && String(part).trim().length > 0);
+              return parts.join(' ').replace(/\s+/g, ' ').trim();
+            }
+            // Handle direct ingredient object
+            else if (ing.name) {
+              const qty = ing.qty || ing.quantity || '';
+              const unit = ing.unit || '';
+              const parts = [qty, unit, ing.name].filter(part => part && String(part).trim().length > 0);
+              return parts.join(' ').replace(/\s+/g, ' ').trim();
+            } else if (ing.ingredientName) {
+              const qty = ing.qty || ing.quantity || '';
+              const unit = ing.unit || '';
+              const parts = [qty, unit, ing.ingredientName].filter(part => part && String(part).trim().length > 0);
+              return parts.join(' ').replace(/\s+/g, ' ').trim();
+            } else if (ing.text || ing.description) {
+              return ing.text || ing.description;
+            } else {
+              // Extract any string values from the object
+              const values = Object.values(ing).filter(v => 
+                typeof v === 'string' && v.trim().length > 0
+              );
+              return values.join(' ') || 'מרכיב לא מזוהה';
+            }
+          }
+          return String(ing);
+        }).filter(ing => ing && ing.trim() && ing !== 'מרכיב לא מזוהה');
+      } else {
+        console.warn('No ingredients found in AI generated recipe');
+        processedIngredients = ['לא נמצאו מרכיבים במתכון הזה'];
+      }
+      
+      // Ensure the recipe has proper structure
+      const processedRecipe = {
+        ...generatedRecipe,
+        id: generatedRecipe._id || generatedRecipe.id || Date.now().toString(),
+        ingredients: processedIngredients,
+        steps: generatedRecipe.steps || generatedRecipe.instructions || [],
+        tags: Array.isArray(generatedRecipe.tags) ? generatedRecipe.tags : []
+      };
+      
+      console.log('Processed recipe for preview:', processedRecipe);
+      console.log('Processed ingredients:', processedIngredients);
+      
+      setAiGeneratedRecipe(processedRecipe);
       setIsAiPreviewModalOpen(true);
     } catch (err) {
       console.error('Error generating AI recipe:', err);
-      throw new Error(err.message || 'שגיאה ביצירת המתכון עם AI');
+      alert(`שגיאה ביצירת המתכון עם AI: ${err.message}`);
     } finally {
       setIsGeneratingAiRecipe(false);
     }
@@ -187,7 +314,24 @@ const Home = () => {
   const handleAddAiRecipe = async (recipe) => {
     try {
       const savedRecipe = await addRecipe(recipe);
-      setRecipes(prev => [savedRecipe, ...prev]);
+      
+      // Add the recipe with a new flag for animation
+      const recipeWithAnimation = {
+        ...savedRecipe,
+        isNew: true
+      };
+      
+      setRecipes(prev => [recipeWithAnimation, ...prev]);
+      
+      // Remove the animation flag after a short delay
+      setTimeout(() => {
+        setRecipes(prev => prev.map(r => 
+          r._id === savedRecipe._id || r.id === savedRecipe.id
+            ? { ...r, isNew: false }
+            : r
+        ));
+      }, 1000);
+      
       alert('המתכון נוסף בהצלחה למתכונים שלך!');
     } catch (err) {
       console.error('Error adding AI recipe:', err);
@@ -195,11 +339,45 @@ const Home = () => {
       const localRecipe = {
         ...recipe,
         id: Date.now().toString(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        isNew: true
       };
       setRecipes(prev => [localRecipe, ...prev]);
+      
+      // Remove the animation flag after a short delay
+      setTimeout(() => {
+        setRecipes(prev => prev.map(r => 
+          r.id === localRecipe.id
+            ? { ...r, isNew: false }
+            : r
+        ));
+      }, 1000);
+      
       alert('המתכון נוסף למתכונים שלך (שמירה מקומית)');
     }
+  };
+
+  // Handle removing a recipe from selected list
+  const handleRemoveSelectedRecipe = (recipeToRemove) => {
+    setSelectedRecipes(prev => 
+      prev.filter(recipe => (recipe.id || recipe.title) !== (recipeToRemove.id || recipeToRemove.title))
+    );
+  };
+
+  // Handle clearing all selected recipes
+  const handleClearAllSelectedRecipes = () => {
+    setSelectedRecipes([]);
+  };
+
+  // Handle clearing current shopping cart
+  const handleClearShoppingCart = () => {
+    // Clear the current shopping list from localStorage
+    localStorage.removeItem('currentShoppingList');
+    // Clear selected recipes
+    setSelectedRecipes([]);
+    // Go back to main view
+    setShowShoppingList(false);
+    alert('עגלת הקניות נמחקה בהצלחה');
   };
 
   // Handle building shopping list via API
@@ -212,34 +390,61 @@ const Home = () => {
       const list = await buildShoppingList({
         userId: "currentUserId",
         title: "רשימת קניות חדשה",
-        recipeIds: selectedRecipes.map(r => r.id || r.title),
+        recipeIds: selectedRecipes.map(r => r._id || r.id),
       });
       console.log("Shopping list created:", list);
+      
+      // Show message about missing ingredients if any
+      if (list.serverMessage) {
+        alert(list.serverMessage);
+      }
+      
+      // Convert server response to local format and store
+      const serverItems = list.byDept ? 
+        Object.values(list.byDept).flat().map(item => ({
+          id: item.itemId || `${item.canonicalName}_${item.dept}`,
+          name: item.qty && item.unit && item.qty !== 1 ? 
+            `${item.qty} ${item.unit} ${item.canonicalName}` :
+            item.unit && item.unit !== 'יחידה' ?
+            `${item.unit} ${item.canonicalName}` :
+            item.canonicalName,
+          baseName: item.canonicalName,
+          qty: item.qty,
+          unit: item.unit,
+          quantity: 1,
+          recipes: selectedRecipes.map(r => r.title || r.name),
+          category: item.dept,
+          checked: false
+        })) : [];
+      
+      // Store the created list in localStorage for current shopping list
+      localStorage.setItem('currentShoppingList', JSON.stringify({
+        ...list,
+        items: serverItems,
+        recipes: selectedRecipes.map(r => r.title || r.name),
+        createdAt: new Date().toISOString()
+      }));
+      
       setShowShoppingList(true);
     } catch (err) {
       console.error(err);
-      alert("Failed to create shopping list");
+      alert(`שגיאה ביצירת רשימת הקניות: ${err.message}`);
     }
   };
 
   const handleViewCurrentList = async () => {
     try {
       const currentListData = localStorage.getItem("currentShoppingList");
-      if (!currentListData) return;
+      if (!currentListData) {
+        alert("אין רשימת קניות נוכחית");
+        return;
+      }
 
-      const currentList = JSON.parse(currentListData);
-      // Fetch shopping list from API if needed
-      // const list = await getShoppingList(currentList.id);
-
-      setSelectedRecipes(
-        currentList.recipes
-          .map(title => recipes.find(r => r.title === title))
-          .filter(Boolean)
-      );
+      // Simply show the shopping list - it will load the data from localStorage
       setShowShoppingList(true);
     } catch (err) {
-      console.error(err);
-      alert("Failed to load current shopping list");
+      console.error("Error loading current shopping list:", err);
+      alert("שגיאה בטעינת רשימת הקניות");
     }
   };
 
@@ -251,6 +456,7 @@ const Home = () => {
       <ShoppingList
         selectedRecipes={selectedRecipes}
         onBack={() => setShowShoppingList(false)}
+        onClearCart={handleClearShoppingCart}
         onAddToHistory={(data) => {
           localStorage.removeItem("currentShoppingList");
           alert("רשימת הקניות נוספה להיסטוריה בהצלחה!");
@@ -292,7 +498,13 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8">
-        <CurrentShoppingList onViewList={handleViewCurrentList} />
+        <CurrentShoppingList 
+          onViewList={handleViewCurrentList} 
+          onDeleteList={() => {
+            // Force refresh the current shopping list display
+            setSelectedRecipes([]);
+          }}
+        />
         
         {/* Error Display */}
         {error && (
@@ -349,18 +561,19 @@ const Home = () => {
                             </button>
                         </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 lg:gap-6">
-                {selectedRecipes.length > 0 && (
-                  <button
-                    onClick={handleGenerateShoppingList}
-                    className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors duration-200 shadow-md hover:shadow-lg text-sm sm:text-base lg:text-lg whitespace-nowrap"
-                  >
-                    צור רשימת קניות ({selectedRecipes.length})
-                  </button>
-                )}
                 <AiRecipeButton onClick={() => setIsAiPromptModalOpen(true)} />
                 <AddRecipeButton onClick={() => setIsAddRecipeModalOpen(true)} />
                     </div>
                 </div>
+
+            {/* Selected Recipes Manager */}
+            <SelectedRecipesManager
+              selectedRecipes={selectedRecipes}
+              onRemoveRecipe={handleRemoveSelectedRecipe}
+              onClearAll={handleClearAllSelectedRecipes}
+              onGenerateShoppingList={handleGenerateShoppingList}
+              onClearCart={localStorage.getItem('currentShoppingList') ? handleClearShoppingCart : null}
+            />
 
             {/* Recipe Grid */}
             <div className="mt-8">
@@ -396,10 +609,10 @@ const Home = () => {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                <div className="recipe-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                   {filteredRecipes.map((recipe, index) => (
                 <RecipeCard
-                  key={recipe.id || recipe.title || `recipe-${index}`}
+                  key={recipe._id || recipe.id || `recipe-${index}`}
                   recipe={recipe}
                   onSelect={(r) =>
                     setSelectedRecipes(prev =>
@@ -413,6 +626,7 @@ const Home = () => {
                     setIsRecipeDetailModalOpen(true);
                   }}
                   isFavorite={favorites.some(f => (f.id || f.title) === (recipe.id || recipe.title))}
+                  isSelected={selectedRecipes.some(x => (x.id || x.title) === (recipe.id || recipe.title))}
                   onToggleFavorite={(r) => {
                     setFavorites(prev => {
                       const isFav = prev.some(f => (f.id || f.title) === (r.id || r.title));

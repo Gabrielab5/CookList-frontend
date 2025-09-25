@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import Header from './Header';
 
-const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
+const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) => {
   const [checkedItems, setCheckedItems] = useState({});
   const [shoppingListItems, setShoppingListItems] = useState([]);
+  const [currentShoppingList, setCurrentShoppingList] = useState(null);
+  const [effectiveRecipes, setEffectiveRecipes] = useState([]);
 
   // Ingredient categories for organization
   const ingredientCategories = {
@@ -18,30 +21,160 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
     'אחר': []
   };
 
-  // Generate shopping list from selected recipes
+  // Load current shopping list from localStorage if no selectedRecipes
   useEffect(() => {
-    if (selectedRecipes.length > 0) {
+    if (selectedRecipes.length === 0) {
+      // Try to load from localStorage
+      const currentListData = localStorage.getItem('currentShoppingList');
+      if (currentListData) {
+        try {
+          const parsedList = JSON.parse(currentListData);
+          setCurrentShoppingList(parsedList);
+          setEffectiveRecipes([]); // We don't need recipes for display, we have the shopping list data
+          return;
+        } catch (error) {
+          console.error('Error parsing current shopping list:', error);
+        }
+      }
+    } else {
+      setEffectiveRecipes(selectedRecipes);
+      setCurrentShoppingList(null);
+    }
+  }, [selectedRecipes]);
+
+  // Generate shopping list from selected recipes OR load from localStorage
+  useEffect(() => {
+    if (currentShoppingList) {
+      // Load from localStorage data
+      if (currentShoppingList.items) {
+        setShoppingListItems(currentShoppingList.items);
+        
+        // Initialize checked items state from localStorage data
+        const initialChecked = {};
+        currentShoppingList.items.forEach(item => {
+          initialChecked[item.id || item._id || `${item.name}_${item.category}`] = item.checked || false;
+        });
+        setCheckedItems(initialChecked);
+      }
+    } else if (effectiveRecipes.length > 0) {
       const allIngredients = [];
       
       selectedRecipes.forEach(recipe => {
         recipe.ingredients.forEach(ingredient => {
-          // Check if ingredient already exists (case-insensitive)
+          // console.log('ShoppingList - Processing ingredient:', ingredient, 'Type:', typeof ingredient);
+          
+          // Handle different ingredient formats
+          let ingredientName = '';
+          let ingredientDisplay = '';
+          let qty = 0;
+          let unit = '';
+          
+          if (typeof ingredient === 'string') {
+            // Try to parse string like "2 כוסות קמח" or just "מלח"
+            const parts = ingredient.trim().split(' ');
+            if (parts.length >= 3) {
+              const possibleQty = parseFloat(parts[0]);
+              if (!isNaN(possibleQty)) {
+                qty = possibleQty;
+                unit = parts[1];
+                ingredientName = parts.slice(2).join(' ');
+                ingredientDisplay = ingredient;
+              } else {
+                ingredientName = ingredient;
+                ingredientDisplay = ingredient;
+                qty = 1;
+                unit = 'יחידה';
+              }
+            } else {
+              ingredientName = ingredient;
+              ingredientDisplay = ingredient;
+              qty = 1;
+              unit = 'יחידה';
+            }
+          } else if (typeof ingredient === 'object' && ingredient !== null) {
+            // Try different possible object structures
+            if (ingredient.name || ingredient.ingredientName) {
+              ingredientName = ingredient.name || ingredient.ingredientName;
+              qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
+              unit = ingredient.unit || 'יחידה';
+              
+              // Format display with quantity and unit
+              if (qty && unit && qty !== 1) {
+                ingredientDisplay = `${qty} ${unit} ${ingredientName}`;
+              } else if (unit && unit !== 'יחידה') {
+                ingredientDisplay = `${unit} ${ingredientName}`;
+              } else {
+                ingredientDisplay = ingredientName;
+              }
+            } else if (ingredient.text) {
+              ingredientName = ingredient.text;
+              ingredientDisplay = ingredient.text;
+              qty = 1;
+              unit = 'יחידה';
+            } else if (ingredient.description) {
+              ingredientName = ingredient.description;
+              ingredientDisplay = ingredient.description;
+              qty = 1;
+              unit = 'יחידה';
+            } else {
+              // Try to extract meaningful text from object
+              const values = Object.values(ingredient).filter(v => 
+                typeof v === 'string' && v.trim().length > 0
+              );
+              if (values.length > 0) {
+                ingredientName = values[values.length - 1]; // Use last value as name (usually the actual ingredient)
+                ingredientDisplay = values.join(' ');
+                qty = 1;
+                unit = 'יחידה';
+              } else {
+                // Skip invalid ingredients
+                return;
+              }
+            }
+          } else {
+            // Skip invalid ingredients
+            return;
+          }
+          
+          // Clean up and validate
+          ingredientName = ingredientName.trim();
+          ingredientDisplay = ingredientDisplay.trim();
+          
+          if (!ingredientName || !ingredientDisplay) {
+            return; // Skip empty ingredients
+          }
+          
+          // Check if ingredient already exists (case-insensitive) with same unit
           const existingIndex = allIngredients.findIndex(
-            item => item.name.toLowerCase() === ingredient.toLowerCase()
+            item => item.baseName.toLowerCase() === ingredientName.toLowerCase() && item.unit === unit
           );
           
           if (existingIndex >= 0) {
-            // Increment quantity if ingredient already exists
-            allIngredients[existingIndex].quantity += 1;
-            allIngredients[existingIndex].recipes.push(recipe.name);
+            // Add quantity if ingredient already exists with same unit
+            allIngredients[existingIndex].qty += qty;
+            allIngredients[existingIndex].recipes.push(recipe.title || recipe.name);
+            
+            // Update display with new total quantity
+            const totalQty = allIngredients[existingIndex].qty;
+            const displayUnit = allIngredients[existingIndex].unit;
+            if (totalQty && displayUnit && totalQty !== 1) {
+              allIngredients[existingIndex].name = `${totalQty} ${displayUnit} ${ingredientName}`;
+            } else if (displayUnit && displayUnit !== 'יחידה') {
+              allIngredients[existingIndex].name = `${displayUnit} ${ingredientName}`;
+            } else {
+              allIngredients[existingIndex].name = ingredientName;
+            }
           } else {
             // Add new ingredient
             allIngredients.push({
               id: Date.now() + Math.random(), // Unique ID
-              name: ingredient,
-              quantity: 1,
-              recipes: [recipe.name],
-              category: categorizeIngredient(ingredient),
+              name: ingredientDisplay,
+              baseName: ingredientName, // Store base name for comparison
+              qty: qty,
+              unit: unit,
+              quantity: 1, // Keep for backward compatibility
+              recipes: [recipe.title || recipe.name],
+              category: categorizeIngredient(ingredientName),
               checked: false
             });
           }
@@ -65,17 +198,19 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
       });
       setCheckedItems(initialChecked);
 
-      // Save current shopping list to localStorage
-      const currentListData = {
-        id: Date.now().toString(),
-        name: `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
-        createdAt: new Date().toISOString(),
-        recipes: selectedRecipes.map(recipe => recipe.name),
-        items: allIngredients
-      };
-      localStorage.setItem('currentShoppingList', JSON.stringify(currentListData));
+      // Save current shopping list to localStorage only if we're generating from selectedRecipes
+      if (effectiveRecipes.length > 0) {
+        const currentListData = {
+          id: Date.now().toString(),
+          name: `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
+          createdAt: new Date().toISOString(),
+          recipes: effectiveRecipes.map(recipe => recipe.name || recipe.title),
+          items: allIngredients
+        };
+        localStorage.setItem('currentShoppingList', JSON.stringify(currentListData));
+      }
     }
-  }, [selectedRecipes]);
+  }, [selectedRecipes, effectiveRecipes, currentShoppingList]);
 
   // Categorize ingredient based on keywords
   const categorizeIngredient = (ingredient) => {
@@ -166,14 +301,18 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
 
   // Add to history
   const handleAddToHistory = () => {
+    const recipesForHistory = currentShoppingList 
+      ? (currentShoppingList.recipes || [])
+      : selectedRecipes.map(recipe => recipe.name || recipe.title);
+      
     const shoppingListData = {
       id: Date.now().toString(),
-      name: `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
-      createdAt: new Date().toISOString(),
-      recipes: selectedRecipes.map(recipe => recipe.name),
+      name: currentShoppingList?.name || `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
+      createdAt: currentShoppingList?.createdAt || new Date().toISOString(),
+      recipes: recipesForHistory,
       items: shoppingListItems.map(item => ({
         ...item,
-        checked: checkedItems[item.id] || false
+        checked: checkedItems[item.id || item._id || `${item.name}_${item.category}`] || false
       }))
     };
 
@@ -192,15 +331,17 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
     setCheckedItems({});
   };
 
-  if (selectedRecipes.length === 0) {
+  // Only show "no recipes" message if there are no selectedRecipes AND no currentShoppingList
+  if (selectedRecipes.length === 0 && !currentShoppingList) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Header />
         <div className="text-center">
           <svg className="w-20 h-20 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">לא נבחרו מתכונים</h2>
-          <p className="text-gray-600 mb-6">אנא בחר כמה מתכונים כדי ליצור רשימת קניות.</p>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-3">אין רשימת קניות זמינה</h2>
+          <p className="text-gray-600 mb-6">אנא בחר כמה מתכונים כדי ליצור רשימת קניות חדשה.</p>
           <button
             onClick={onBack}
             className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors duration-200"
@@ -214,6 +355,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6">
@@ -221,15 +363,37 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory }) => {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">רשימת קניות</h1>
               <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
-                נוצר מ-{selectedRecipes.length} מתכון{selectedRecipes.length !== 1 ? 'ים' : ''}
+                {currentShoppingList ? (
+                  <>נוצר מ-{currentShoppingList.recipes?.length || 0} {(currentShoppingList.recipes?.length || 0) !== 1 ? 'מתכונים' : 'מתכון'}</>
+                ) : (
+                  <>נוצר מ-{selectedRecipes.length} מתכון{selectedRecipes.length !== 1 ? 'ים' : ''}</>
+                )}
               </p>
             </div>
-            <button
-              onClick={onBack}
-              className="px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg sm:rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-sm sm:text-base"
-            >
-              חזור למתכונים
-            </button>
+            <div className="flex gap-3">
+              {onClearCart && (
+                <button
+                  onClick={() => {
+                    if (window.confirm('האם אתה בטוח שברצונך למחוק את עגלת הקניות? פעולה זו לא ניתנת לביטול.')) {
+                      onClearCart();
+                    }
+                  }}
+                  className="px-4 sm:px-6 py-2.5 sm:py-3 bg-red-500 text-white font-semibold rounded-lg sm:rounded-xl hover:bg-red-600 transition-all duration-200 text-sm sm:text-base"
+                  title="מחק עגלת קניות"
+                >
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  מחק עגלה
+                </button>
+              )}
+              <button
+                onClick={onBack}
+                className="px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg sm:rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-sm sm:text-base"
+              >
+                חזור למתכונים
+              </button>
+            </div>
           </div>
         </div>
       </div>

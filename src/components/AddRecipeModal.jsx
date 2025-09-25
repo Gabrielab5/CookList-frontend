@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 
-const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => {
+const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   const [formData, setFormData] = useState({
-    title: '',
+    name: '',
     category: '',
     prepTime: '',
-    servings: '',
     difficulty: '',
-    photoUrl: '',
-    ingredients: [{ name: '', qty: '', unit: '' }],
-    steps: [''],
+    image: '',
+    ingredients: [''],
+    instructions: [''],
     tags: []
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים'];
   const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'];
@@ -33,12 +33,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
     }
   };
 
-  const handleIngredientChange = (index, field, value) => {
+  const handleIngredientChange = (index, value) => {
     const newIngredients = [...formData.ingredients];
-    newIngredients[index] = {
-      ...newIngredients[index],
-      [field]: value
-    };
+    newIngredients[index] = value;
     setFormData(prev => ({
       ...prev,
       ingredients: newIngredients
@@ -48,7 +45,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
   const addIngredient = () => {
     setFormData(prev => ({
       ...prev,
-      ingredients: [...prev.ingredients, { name: '', qty: '', unit: '' }]
+      ingredients: [...prev.ingredients, '']
     }));
   };
 
@@ -63,27 +60,27 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
   };
 
   const handleInstructionChange = (index, value) => {
-    const newSteps = [...formData.steps];
-    newSteps[index] = value;
+    const newInstructions = [...formData.instructions];
+    newInstructions[index] = value;
     setFormData(prev => ({
       ...prev,
-      steps: newSteps
+      instructions: newInstructions
     }));
   };
 
   const addInstruction = () => {
     setFormData(prev => ({
       ...prev,
-      steps: [...prev.steps, '']
+      instructions: [...prev.instructions, '']
     }));
   };
 
   const removeInstruction = (index) => {
-    if (formData.steps.length > 1) {
-      const newSteps = formData.steps.filter((_, i) => i !== index);
+    if (formData.instructions.length > 1) {
+      const newInstructions = formData.instructions.filter((_, i) => i !== index);
       setFormData(prev => ({
         ...prev,
-        steps: newSteps
+        instructions: newInstructions
       }));
     }
   };
@@ -101,10 +98,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
     const newErrors = {};
 
     // Required fields validation
-    if (!formData.title.trim()) newErrors.title = 'שם המתכון נדרש';
-    if (!formData.category) newErrors.category = 'קטגוריה נדרשת';
-    if (!formData.prepTime) newErrors.prepTime = 'זמן הכנה נדרש';
-    if (!formData.servings) newErrors.servings = 'מספר מנות נדרש';
+      if (!formData.name.trim()) newErrors.name = 'שם המתכון נדרש';
+      if (!formData.category) newErrors.category = 'קטגוריה נדרשת';
+      if (!formData.prepTime) newErrors.prepTime = 'זמן הכנה נדרש';
     if (formData.tags.length === 0) newErrors.tags = 'נדרש לפחות תג אחד';
 
     // Numeric validation
@@ -116,19 +112,19 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
     }
 
     // Ingredients validation
-    const validIngredients = formData.ingredients.filter(ing => ing.name && ing.name.trim());
+    const validIngredients = formData.ingredients.filter(ing => ing.trim());
     if (validIngredients.length === 0) {
       newErrors.ingredients = 'נדרש לפחות מרכיב אחד';
     }
 
-    // Steps validation
-    const validSteps = formData.steps.filter(step => step.trim());
-    if (validSteps.length === 0) {
-      newErrors.steps = 'נדרש לפחות הוראה אחת';
+    // Instructions validation
+    const validInstructions = formData.instructions.filter(inst => inst.trim());
+    if (validInstructions.length === 0) {
+      newErrors.instructions = 'נדרש לפחות הוראה אחת';
     }
 
     // Image URL validation (optional but if provided, should be valid)
-    if (formData.photoUrl && !isValidUrl(formData.photoUrl)) {
+    if (formData.image && !isValidUrl(formData.image)) {
       newErrors.image = 'אנא הזן כתובת תמונה תקינה';
     }
 
@@ -155,20 +151,20 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
     setLoading(true);
 
     try {
-      // Create new recipe object with new structure
-      const newRecipe = {
-        id: Date.now().toString(),
-        title: formData.title.trim(),
-        category: formData.category,
-        prepTime: `${formData.prepTime} דק`,
-        prepTimeMinutes: parseInt(formData.prepTime),
-        servings: parseInt(formData.servings),
-        difficulty: formData.difficulty || 'בינוני',
-        photoUrl: formData.photoUrl || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-        ingredients: formData.ingredients.filter(ing => ing.name.trim()),
-        steps: formData.steps.filter(step => step.trim()),
-        tags: formData.tags
-      };
+      // Create new recipe object
+        const newRecipe = {
+          id: Date.now().toString(), // Simple ID generation
+          name: formData.name.trim(),
+          description: '', // Default empty description
+          category: formData.category,
+          prepTime: `${formData.prepTime} דקות`,
+          prepTimeMinutes: parseInt(formData.prepTime),
+          difficulty: formData.difficulty || 'Medium', // Default to Medium if not selected
+          image: formData.image || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+          ingredients: formData.ingredients.filter(ing => ing.trim()),
+          instructions: formData.instructions.filter(inst => inst.trim()),
+          tags: formData.tags
+        };
 
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -177,26 +173,25 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
       onAddRecipe(newRecipe);
 
       // Reset form
-      setFormData({
-        name: '',
-        category: '',
-        prepTime: '',
-        servings: '',
-        difficulty: '',
-        image: '',
-        ingredients: [''],
-        instructions: [''],
-        tags: []
-      });
+        setFormData({
+          name: '',
+          category: '',
+          prepTime: '',
+          difficulty: '',
+          image: '',
+          ingredients: [''],
+          instructions: [''],
+          tags: []
+        });
       setErrors({});
 
       // Close modal
       onClose();
 
-    } catch (error) {
-      console.error('Error adding recipe:', error);
-      setErrors({ submit: 'Failed to add recipe. Please try again.' });
-    } finally {
+      } catch (error) {
+        console.error('Error adding recipe:', error);
+        setErrors({ submit: 'שגיאה בהוספת המתכון. אנא נסה שוב.' });
+      } finally {
       setLoading(false);
     }
   };
@@ -237,15 +232,15 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
               </label>
               <input
                 type="text"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="הזן שם מתכון"
                 className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${
-                  errors.title ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
+                  errors.name ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
                 }`}
                 disabled={loading}
               />
-              {errors.title && <p className="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2">{errors.title}</p>}
+              {errors.name && <p className="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2">{errors.name}</p>}
             </div>
 
             {/* Category */}
@@ -288,24 +283,6 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
               {errors.prepTime && <p className="text-red-600 text-sm mt-2">{errors.prepTime}</p>}
             </div>
 
-            {/* Servings */}
-            <div>
-              <label className="block text-lg font-semibold text-gray-800 mb-3">
-                מספר מנות *
-              </label>
-              <input
-                type="number"
-                value={formData.servings}
-                onChange={(e) => handleInputChange('servings', e.target.value)}
-                placeholder="4"
-                min="1"
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
-                  errors.servings ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
-                }`}
-                disabled={loading}
-              />
-              {errors.servings && <p className="text-red-600 text-sm mt-2">{errors.servings}</p>}
-            </div>
 
             {/* Difficulty */}
             <div>
@@ -332,8 +309,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
               </label>
               <input
                 type="url"
-                value={formData.photoUrl}
-                onChange={(e) => handleInputChange('photoUrl', e.target.value)}
+                value={formData.image}
+                onChange={(e) => handleInputChange('image', e.target.value)}
                 placeholder="https://example.com/image.jpg"
                 className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
                   errors.image ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
@@ -353,25 +330,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
               {formData.ingredients.map((ingredient, index) => (
                 <div key={index} className="flex gap-3">
                   <input
-                    type="number"
-                    value={ingredient.qty}
-                    onChange={(e) => handleIngredientChange(index, 'qty', e.target.value)}
-                    placeholder="כמות"
-                    className="w-24 px-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
-                    disabled={loading}
-                  />
-                  <input
                     type="text"
-                    value={ingredient.unit}
-                    onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
-                    placeholder="יחידה"
-                    className="w-32 px-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
-                    disabled={loading}
-                  />
-                  <input
-                    type="text"
-                    value={ingredient.name}
-                    onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                    value={ingredient}
+                    onChange={(e) => handleIngredientChange(index, e.target.value)}
                     placeholder={`מרכיב ${index + 1}`}
                     className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg"
                     disabled={loading}
@@ -408,7 +369,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
               הוראות הכנה *
             </label>
             <div className="space-y-3">
-              {formData.steps.map((instruction, index) => (
+              {formData.instructions.map((instruction, index) => (
                 <div key={index} className="flex gap-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                     {index + 1}
@@ -514,10 +475,10 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe, isLoading = false }) => 
             </button>
             <button
               type="submit"
-              disabled={loading || isLoading}
+              disabled={loading}
               className="flex-1 px-6 py-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-all duration-200 disabled:opacity-50 flex items-center justify-center"
             >
-              {loading || isLoading ? (
+              {loading ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

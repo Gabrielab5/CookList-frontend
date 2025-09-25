@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const CurrentShoppingList = ({ onViewList }) => {
+const CurrentShoppingList = ({ onViewList, onDeleteList }) => {
   const [currentList, setCurrentList] = useState(null);
 
   // Load current shopping list from localStorage
@@ -55,12 +55,29 @@ const CurrentShoppingList = ({ onViewList }) => {
             נוצר {formatDate(currentList.createdAt)} • מ-{currentList.recipes.length} מתכון{currentList.recipes.length !== 1 ? 'ים' : ''}
           </p>
         </div>
-        <button
-          onClick={onViewList}
-          className="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm"
-        >
-          הצג רשימה
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              if (window.confirm('האם אתה בטוח שברצונך למחוק את רשימת הקניות הנוכחית?')) {
+                localStorage.removeItem('currentShoppingList');
+                setCurrentList(null);
+                if (onDeleteList) onDeleteList();
+              }
+            }}
+            className="px-3 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors duration-200 text-sm"
+            title="מחק רשימת קניות"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+          <button
+            onClick={onViewList}
+            className="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm"
+          >
+            הצג רשימה מלאה
+          </button>
+        </div>
       </div>
 
       {/* Progress Bar */}
