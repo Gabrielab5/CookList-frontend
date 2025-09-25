@@ -9,7 +9,7 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
   const [prepTimeRange, setPrepTimeRange] = useState('');
   const [servingsRange, setServingsRange] = useState('');
   const [difficultyLevel, setDifficultyLevel] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState('title');
 
   const handleTagToggle = (tag) => {
     const newTags = selectedTags.includes(tag)
@@ -94,7 +94,7 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
     setPrepTimeRange('');
     setServingsRange('');
     setDifficultyLevel('');
-    setSortBy('name');
+    setSortBy('title');
     onFilterChange({
       tags: [],
       ingredientSearch: '',
@@ -104,17 +104,17 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
       prepTimeRange: '',
       servingsRange: '',
       difficultyLevel: '',
-      sortBy: 'name'
+      sortBy: 'title'
     });
   };
 
-  const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'];
-  const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים', 'צמחוני'];
-  const pantryItems = ['אורז', 'פסטה', 'לחם', 'קמח', 'סוכר', 'מלח', 'פלפל', 'שמן זית', 'חמאה', 'ביצים', 'חלב', 'גבינה', 'עגבניות', 'בצלים', 'שום'];
+  const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'].sort((a, b) => a.localeCompare(b, 'he-IL'));
+  const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים', 'צמחוני'].sort((a, b) => a.localeCompare(b, 'he-IL'));
+  const pantryItems = ['אורז', 'פסטה', 'לחם', 'קמח', 'סוכר', 'מלח', 'פלפל', 'שמן זית', 'חמאה', 'ביצים', 'חלב', 'גבינה', 'עגבניות', 'בצלים', 'שום'].sort((a, b) => a.localeCompare(b, 'he-IL'));
 
   const hasActiveFilters = selectedTags.length > 0 || ingredientSearch || excludeIngredients || 
     selectedCategories.length > 0 || selectedPantryItems.length > 0 || prepTimeRange || 
-    servingsRange || difficultyLevel || sortBy !== 'name';
+    servingsRange || difficultyLevel || sortBy !== 'title';
 
   return (
     <div className="bg-white rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 lg:p-8 h-fit max-h-screen overflow-y-auto">
@@ -128,12 +128,10 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
           onChange={(e) => handleSortChange(e.target.value)}
           className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg"
         >
-          <option value="name">שם (א-ת)</option>
-          <option value="name-desc">שם (ת-א)</option>
+          <option value="title">שם (א-ת)</option>
+          <option value="title-desc">שם (ת-א)</option>
           <option value="prepTime">זמן הכנה (הקצר ביותר)</option>
           <option value="prepTime-desc">זמן הכנה (הארוך ביותר)</option>
-          <option value="servings">מספר מנות (הפחות)</option>
-          <option value="servings-desc">מספר מנות (הכי הרבה)</option>
           <option value="category">קטגוריה</option>
         </select>
       </div>

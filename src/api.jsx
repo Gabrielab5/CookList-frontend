@@ -1,38 +1,105 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+// Enhanced API service with proper error handling and loading states
+class ApiService {
+  constructor() {
+    this.baseURL = API_URL;
+  }
+
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API Request failed:', error);
+      throw error;
+    }
+  }
+
+  async get(endpoint) {
+    return this.request(endpoint, { method: 'GET' });
+  }
+
+  async post(endpoint, data) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+}
+
+const apiService = new ApiService();
+
+// Fetch all recipes with proper error handling
 export async function fetchRecipes() {
-  const res = await fetch(`${API_URL}/recipes`);
-  if (!res.ok) {
-    throw new Error("Failed to fetch recipes");
+  try {
+    const response = await apiService.get('/recipes');
+    console.log("Fetched recipes:", response);
+    
+    // Handle different response formats
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response.data && Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      console.warn("Unexpected response format:", response);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching recipes:", error);
+    throw new Error(`שגיאה בטעינת המתכונים: ${error.message}`);
   }
-  const json = await res.json();
-  console.log("Fetched recipes:", json);
-  // L’API renvoie { success, data, total }. On renvoie directement le tableau.
-  return Array.isArray(json) ? json : (json.data ?? []);
 }
 
-export async function addRecipe(newRecipe) {
-  const res = await fetch(`${API_URL}/recipes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newRecipe),
-  });
-  if (!res.ok) {
-    throw new Error("Failed to add recipe");
+// Add new recipe with proper data structure
+export async function addRecipe(recipeData) {
+  try {
+    // Ensure the data structure matches the backend requirements
+    const formattedRecipe = {
+      title: recipeData.title || recipeData.name || '',
+      photoUrl: recipeData.photoUrl || recipeData.image || '',
+      tags: recipeData.tags || [],
+      category: recipeData.category || '',
+      difficulty: recipeData.difficulty || 'בינוני',
+      prepTime: recipeData.prepTime || `${recipeData.prepTimeMinutes || 30} דק`,
+      steps: recipeData.steps || recipeData.instructions || [],
+      ingredients: recipeData.ingredients || []
+    };
+
+    const response = await apiService.post('/recipes', formattedRecipe);
+    console.log("Recipe added successfully:", response);
+    return response;
+  } catch (error) {
+    console.error("Error adding recipe:", error);
+    throw new Error(`שגיאה בהוספת המתכון: ${error.message}`);
   }
-  return res.json();
 }
 
-export async function generateRecipe(newRecipe) {
-  const res = await fetch(`${API_URL}/recipes/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newRecipe),
-  });
-  if (!res.ok) {
-    throw new Error("Failed to add recipe");
+// Generate AI recipe
+export async function generateRecipe(promptData) {
+  try {
+    const response = await apiService.post('/recipes/generate', promptData);
+    console.log("AI recipe generated:", response);
+    return response;
+  } catch (error) {
+    console.error("Error generating AI recipe:", error);
+    throw new Error(`שגיאה ביצירת המתכון עם AI: ${error.message}`);
   }
-  return res.json();
 }
 
 // Shopping Lists

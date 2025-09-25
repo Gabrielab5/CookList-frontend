@@ -1,7 +1,12 @@
 import React from 'react';
 
 const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavorite }) => {
-  const { id, title, photoUrl, tags, category, difficulty, prepTime, steps, ingredients } = recipe;
+  const { id, title, photoUrl, tags, category, difficulty, prepTime, prepTimeMinutes, steps, ingredients } = recipe;
+  
+  // Use title (new structure) or fallback to name (old structure)
+  const recipeTitle = title || recipe.name || 'מתכון ללא שם';
+  const recipeImage = photoUrl || recipe.image || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
+  const recipePrepTime = prepTimeMinutes || (prepTime ? parseInt(prepTime) : 0);
 
   const handleCardClick = (e) => {
     // Prevent event bubbling when clicking on buttons
@@ -18,8 +23,8 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavor
     >
       <div className="relative overflow-hidden rounded-t-lg sm:rounded-t-xl">
         <img
-          src={photoUrl}
-          alt={title}
+          src={recipeImage}
+          alt={recipeTitle}
           className="w-full h-48 sm:h-56 md:h-64 object-cover"
           onError={(e) => {
             e.target.src = 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
@@ -54,14 +59,14 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavor
           
           {/* Prep Time */}
           <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-700">
-            {prepTime} דקות
+            {recipePrepTime} דקות
           </div>
         </div>
       </div>
       
       <div className="p-4 sm:p-6">
         <h3 className="font-semibold text-gray-900 text-lg sm:text-xl mb-2 sm:mb-3 line-clamp-2">
-          {title}
+          {recipeTitle}
         </h3>
         <div className="flex items-center justify-between text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
           <span className="flex items-center">

@@ -11,7 +11,12 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
     if (!recipe?.ingredients) return [];
     const multiplier = servings / (recipe.servings || 4);
     return recipe.ingredients.map(ingredient => {
-      // Try to extract quantity and unit from ingredient string
+      // Handle new ingredient structure (object with name, qty, unit)
+      if (typeof ingredient === 'object' && ingredient.name && ingredient.qty && ingredient.unit) {
+        const adjustedQuantity = parseFloat(ingredient.qty) * multiplier;
+        return `${adjustedQuantity.toFixed(adjustedQuantity % 1 === 0 ? 0 : 1)} ${ingredient.unit} ${ingredient.name}`;
+      }
+      // Handle old ingredient structure (string)
       const match = ingredient.match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z]*)\s*(.*)$/);
       if (match) {
         const [, quantity, unit, name] = match;
@@ -37,8 +42,8 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
         <div className="relative">
           <div className="h-48 sm:h-64 lg:h-80 overflow-hidden rounded-t-lg sm:rounded-t-xl">
             <img
-              src={recipe.photoUrl}
-              alt={recipe.title}
+              src={recipe.photoUrl || recipe.image}
+              alt={recipe.title || recipe.name || 'מתכון'}
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.src = 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
@@ -59,7 +64,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
 
           {/* Recipe Title Overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">{recipe.title}</h1>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">{recipe.title || recipe.name || 'מתכון'}</h1>
            
     
             {/* Quick Info */}
@@ -185,7 +190,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">הוראות הכנה</h3>
                 <div className="space-y-6">
-                  {(recipe.instructions || []).map((instruction, index) => (
+                  {(recipe.steps || recipe.instructions || []).map((instruction, index) => (
                     <div key={index} className="flex gap-4">
                       <div className="flex-shrink-0 w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
                         {index + 1}

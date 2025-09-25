@@ -93,7 +93,7 @@ const AiRecipePreviewModal = ({ isOpen, onClose, recipe, onAddToRecipes }) => {
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">תגיות:</h4>
                 <div className="flex flex-wrap gap-2">
-                  {recipe.tags.map((tag, index) => (
+                  {(recipe.tags || []).map((tag, index) => (
                     <span
                       key={index}
                       className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
@@ -109,7 +109,7 @@ const AiRecipePreviewModal = ({ isOpen, onClose, recipe, onAddToRecipes }) => {
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-3">מרכיבים:</h4>
               <ul className="space-y-2">
-                {recipe.ingredients.map((ingredient, index) => (
+                {(recipe.ingredients || []).map((ingredient, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
                     <span className="text-gray-700">{ingredient}</span>
@@ -122,7 +122,7 @@ const AiRecipePreviewModal = ({ isOpen, onClose, recipe, onAddToRecipes }) => {
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-3">הוראות הכנה:</h4>
               <ol className="space-y-3">
-                {recipe.instructions.map((instruction, index) => (
+                {(recipe.instructions || []).map((instruction, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <span className="flex items-center justify-center w-6 h-6 bg-orange-500 text-white text-sm font-semibold rounded-full flex-shrink-0">
                       {index + 1}

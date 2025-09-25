@@ -11,14 +11,13 @@ import AiRecipePreviewModal from "../components/AiRecipePreviewModal";
 import ShoppingList from "../components/ShoppingList";
 import CurrentShoppingList from "../components/CurrentShoppingList";
 import RecipeDetailModal from "../components/RecipeDetailModal";
-import { mockRecipes } from "../data/mockRecipes";
 import {
   fetchRecipes,
   addRecipe,
+  generateRecipe,
   buildShoppingList,
   getShoppingList,
 } from "../api";
-import { aiRecipeService } from "../services/api";
 
 const Home = () => {
   const location = useLocation();
@@ -26,6 +25,8 @@ const Home = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAddingRecipe, setIsAddingRecipe] = useState(false);
+  const [isGeneratingAiRecipe, setIsGeneratingAiRecipe] = useState(false);
 
   const [filters, setFilters] = useState({
     tags: [],
@@ -34,7 +35,7 @@ const Home = () => {
     categories: [],
     pantryItems: [],
     prepTimeRange: "",
-    // servingsRange: "",
+    servingsRange: "",
     difficultyLevel: "",
     sortBy: "title",
   });
@@ -58,13 +59,16 @@ const Home = () => {
   useEffect(() => {
     const loadRecipes = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const data = await fetchRecipes();
         console.log("Fetched recipes:", data);
+        console.log("First recipe structure:", data[0]);
         setRecipes(data);
       } catch (err) {
-        console.error(err);
-        setError("Could not load recipes from server. Using mock data.");
-        setRecipes(mockRecipes); // fallback
+        console.error("Error loading recipes:", err);
+        setError(err.message || "שגיאה בטעינת המתכונים מהשרת");
+        setRecipes([]); // No fallback to mock data
       } finally {
         setLoading(false);
       }
@@ -107,15 +111,15 @@ const Home = () => {
           case "long": if (prepTime < 61) return false; break;
         }
       }
-    //   if (filters.servingsRange) {
-    //     const servings = recipe.servings;
-    //     switch (filters.servingsRange) {
-    //       case "1-2": if (servings < 1 || servings > 2) return false; break;
-    //       case "3-4": if (servings < 3 || servings > 4) return false; break;
-    //       case "5-6": if (servings < 5 || servings > 6) return false; break;
-    //       case "7+": if (servings < 7) return false; break;
-    //     }
-    //   }
+      if (filters.servingsRange) {
+        const servings = recipe.servings;
+        switch (filters.servingsRange) {
+          case "1-2": if (servings < 1 || servings > 2) return false; break;
+          case "3-4": if (servings < 3 || servings > 4) return false; break;
+          case "5-6": if (servings < 5 || servings > 6) return false; break;
+          case "7+": if (servings < 7) return false; break;
+        }
+      }
       return true;
     });
 
@@ -123,14 +127,18 @@ const Home = () => {
     if (filters.sortBy) {
       filtered.sort((a, b) => {
         switch (filters.sortBy) {
-          case "title": return a.title.localeCompare(b.title);
-          case "title-desc": return b.title.localeCompare(a.title);
-          case "prepTime": return a.prepTimeMinutes - b.prepTimeMinutes;
-          case "prepTime-desc": return b.prepTimeMinutes - a.prepTimeMinutes;
-        //   case "servings": return a.servings - b.servings;
-        //   case "servings-desc": return b.servings - a.servings;
-          case "category": return a.category.localeCompare(b.category);
-          default: return 0;
+          case "title": 
+            return (a.name || a.title || '').localeCompare(b.name || b.title || '', 'he-IL');
+          case "title-desc": 
+            return (b.name || b.title || '').localeCompare(a.name || a.title || '', 'he-IL');
+          case "prepTime": 
+            return (a.prepTimeMinutes || 0) - (b.prepTimeMinutes || 0);
+          case "prepTime-desc": 
+            return (b.prepTimeMinutes || 0) - (a.prepTimeMinutes || 0);
+          case "category": 
+            return (a.category || '').localeCompare(b.category || '', 'he-IL');
+          default: 
+            return 0;
         }
       });
     }
@@ -141,31 +149,44 @@ const Home = () => {
   // Handle adding new recipe via API
   const handleAddNewRecipe = async (newRecipe) => {
     try {
+      setIsAddingRecipe(true);
       const savedRecipe = await addRecipe(newRecipe);
       setRecipes(prev => [savedRecipe, ...prev]);
+      alert("המתכון נוסף בהצלחה!");
     } catch (err) {
-      console.error(err);
-      alert("Failed to save recipe to server. Added locally only.");
-      setRecipes(prev => [newRecipe, ...prev]);
+      console.error("Error adding recipe:", err);
+      alert(err.message || "שגיאה בשמירת המתכון. המתכון נוסף מקומית בלבד.");
+      // Add locally as fallback
+      const localRecipe = {
+        ...newRecipe,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+      setRecipes(prev => [localRecipe, ...prev]);
+    } finally {
+      setIsAddingRecipe(false);
     }
   };
 
   // Handle AI recipe generation
   const handleGenerateAiRecipe = async (prompt) => {
     try {
-      const generatedRecipe = await aiRecipeService.generateRecipe(prompt);
+      setIsGeneratingAiRecipe(true);
+      const generatedRecipe = await generateRecipe({ prompt });
       setAiGeneratedRecipe(generatedRecipe);
       setIsAiPreviewModalOpen(true);
     } catch (err) {
       console.error('Error generating AI recipe:', err);
-      throw new Error('שגיאה ביצירת המתכון עם AI');
+      throw new Error(err.message || 'שגיאה ביצירת המתכון עם AI');
+    } finally {
+      setIsGeneratingAiRecipe(false);
     }
   };
 
   // Handle adding AI generated recipe to user's recipes
   const handleAddAiRecipe = async (recipe) => {
     try {
-      const savedRecipe = await aiRecipeService.addAiRecipe(recipe);
+      const savedRecipe = await addRecipe(recipe);
       setRecipes(prev => [savedRecipe, ...prev]);
       alert('המתכון נוסף בהצלחה למתכונים שלך!');
     } catch (err) {
@@ -191,7 +212,7 @@ const Home = () => {
       const list = await buildShoppingList({
         userId: "currentUserId",
         title: "רשימת קניות חדשה",
-        recipeIds: selectedRecipes.map(r => r.id),
+        recipeIds: selectedRecipes.map(r => r.id || r.title),
       });
       console.log("Shopping list created:", list);
       setShowShoppingList(true);
@@ -239,11 +260,63 @@ const Home = () => {
     );
   }
 
-    return (
-        <div className="min-h-screen bg-gray-50">
+  // Loading spinner component
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center py-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      <span className="ml-3 text-gray-600">טוען מתכונים...</span>
+    </div>
+  );
+
+  // Error display component
+  const ErrorDisplay = ({ error, onRetry }) => (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div className="flex items-center">
+        <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+        <span className="text-red-800 font-medium">{error}</span>
+      </div>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          נסה שוב
+        </button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8">
         <CurrentShoppingList onViewList={handleViewCurrentList} />
+        
+        {/* Error Display */}
+        {error && (
+          <ErrorDisplay 
+            error={error} 
+              onRetry={() => {
+                setError(null);
+                // Retry loading recipes
+                const loadRecipes = async () => {
+                  try {
+                    setLoading(true);
+                    const data = await fetchRecipes();
+                    setRecipes(data);
+                  } catch (err) {
+                    setError(err.message || "שגיאה בטעינת המתכונים מהשרת");
+                    setRecipes([]);
+                  } finally {
+                    setLoading(false);
+                  }
+                };
+                loadRecipes();
+              }}
+          />
+        )}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
           {isSidebarOpen && (
             <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 transition-all duration-300 ease-in-out">
@@ -286,19 +359,52 @@ const Home = () => {
                 )}
                 <AiRecipeButton onClick={() => setIsAiPromptModalOpen(true)} />
                 <AddRecipeButton onClick={() => setIsAddRecipeModalOpen(true)} />
-              </div>
+                    </div>
                 </div>
 
             {/* Recipe Grid */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-              {filteredRecipes.map(recipe => (
+            <div className="mt-8">
+              {loading ? (
+                <LoadingSpinner />
+              ) : filteredRecipes.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-500 text-lg mb-4">
+                    {error ? "לא ניתן לטעון מתכונים מהשרת" : "אין מתכונים זמינים כרגע"}
+                  </div>
+                  {error && (
+                    <button
+                      onClick={() => {
+                        setError(null);
+                        const loadRecipes = async () => {
+                          try {
+                            setLoading(true);
+                            const data = await fetchRecipes();
+                            setRecipes(data);
+                          } catch (err) {
+                            setError(err.message || "שגיאה בטעינת המתכונים מהשרת");
+                            setRecipes([]);
+                          } finally {
+                            setLoading(false);
+                          }
+                        };
+                        loadRecipes();
+                      }}
+                      className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                    >
+                      נסה שוב
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                  {filteredRecipes.map((recipe, index) => (
                 <RecipeCard
-                  key={recipe.id}
+                  key={recipe.id || recipe.title || `recipe-${index}`}
                   recipe={recipe}
                   onSelect={(r) =>
                     setSelectedRecipes(prev =>
-                      prev.some(x => x.id === r.id)
-                        ? prev.filter(x => x.id !== r.id)
+                      prev.some(x => (x.id || x.title) === (r.id || r.title))
+                        ? prev.filter(x => (x.id || x.title) !== (r.id || r.title))
                         : [...prev, r]
                     )
                   }
@@ -306,19 +412,21 @@ const Home = () => {
                     setSelectedRecipeForDetails(r);
                     setIsRecipeDetailModalOpen(true);
                   }}
-                  isFavorite={favorites.some(f => f.id === recipe.id)}
+                  isFavorite={favorites.some(f => (f.id || f.title) === (recipe.id || recipe.title))}
                   onToggleFavorite={(r) => {
                     setFavorites(prev => {
-                      const isFav = prev.some(f => f.id === r.id);
+                      const isFav = prev.some(f => (f.id || f.title) === (r.id || r.title));
                       const newFavs = isFav
-                        ? prev.filter(f => f.id !== r.id)
+                        ? prev.filter(f => (f.id || f.title) !== (r.id || r.title))
                         : [...prev, r];
                       localStorage.setItem("favoriteRecipes", JSON.stringify(newFavs));
                       return newFavs;
                     });
                   }}
-                />
-              ))}
+                  />
+                  ))}
+                </div>
+              )}
             </div>
                         </div>
                     </div>
@@ -328,6 +436,7 @@ const Home = () => {
         isOpen={isAddRecipeModalOpen}
         onClose={() => setIsAddRecipeModalOpen(false)}
         onAddRecipe={handleAddNewRecipe}
+        isLoading={isAddingRecipe}
       />
 
       <RecipeDetailModal
@@ -335,7 +444,7 @@ const Home = () => {
         isOpen={isRecipeDetailModalOpen}
         onClose={() => setIsRecipeDetailModalOpen(false)}
         onAddToShoppingList={(r) => {
-          if (!selectedRecipes.some(x => x.id === r.id))
+          if (!selectedRecipes.some(x => (x.id || x.title) === (r.id || r.title)))
             setSelectedRecipes(prev => [...prev, r]);
           setIsRecipeDetailModalOpen(false);
         }}
@@ -354,8 +463,8 @@ const Home = () => {
         recipe={aiGeneratedRecipe}
         onAddToRecipes={handleAddAiRecipe}
       />
-    </div>
-  );
+        </div>
+    );
 };
 
 export default Home;
