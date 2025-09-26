@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import { addRecipe } from '../api';
 const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +23,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
       ...prev,
       [field]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
@@ -98,9 +98,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     const newErrors = {};
 
     // Required fields validation
-      if (!formData.name.trim()) newErrors.name = 'שם המתכון נדרש';
-      if (!formData.category) newErrors.category = 'קטגוריה נדרשת';
-      if (!formData.prepTime) newErrors.prepTime = 'זמן הכנה נדרש';
+    if (!formData.name.trim()) newErrors.name = 'שם המתכון נדרש';
+    if (!formData.category) newErrors.category = 'קטגוריה נדרשת';
+    if (!formData.prepTime) newErrors.prepTime = 'זמן הכנה נדרש';
     if (formData.tags.length === 0) newErrors.tags = 'נדרש לפחות תג אחד';
 
     // Numeric validation
@@ -143,55 +143,37 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-
     try {
-      // Create new recipe object
-        const newRecipe = {
-          id: Date.now().toString(), // Simple ID generation
-          name: formData.name.trim(),
-          description: '', // Default empty description
-          category: formData.category,
-          prepTime: `${formData.prepTime} דקות`,
-          prepTimeMinutes: parseInt(formData.prepTime),
-          difficulty: formData.difficulty || 'Medium', // Default to Medium if not selected
-          image: formData.image || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-          ingredients: formData.ingredients.filter(ing => ing.trim()),
-          instructions: formData.instructions.filter(inst => inst.trim()),
-          tags: formData.tags
-        };
+      // Tu peux réutiliser ton objet actuel, l'API fera le mapping:
+      const newRecipe = {
+        name: formData.name.trim(),
+        category: formData.category,
+        prepTime: `${parseInt(formData.prepTime, 10)} דק`,
+        prepTimeMinutes: parseInt(formData.prepTime, 10),
+        difficulty: formData.difficulty || 'בינוני',
+        image: formData.image || '',
+        ingredients: formData.ingredients,        // strings OK, l'API parse en {name,qty,unit}
+        instructions: formData.instructions,
+        tags: formData.tags
+      };
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const saved = await addRecipe(newRecipe);  // 🔗 ENVOI AU BACKEND (sauvegarde DB)
+      onAddRecipe?.(saved);                      // optionnel : MAJ de l’état côté front avec la réponse
 
-      // Add recipe to the list
-      onAddRecipe(newRecipe);
-
-      // Reset form
-        setFormData({
-          name: '',
-          category: '',
-          prepTime: '',
-          difficulty: '',
-          image: '',
-          ingredients: [''],
-          instructions: [''],
-          tags: []
-        });
+      // reset + close
+      setFormData({ name: '', category: '', prepTime: '', difficulty: '', image: '', ingredients: [''], instructions: [''], tags: [] });
       setErrors({});
-
-      // Close modal
       onClose();
-
-      } catch (error) {
-        console.error('Error adding recipe:', error);
-        setErrors({ submit: 'שגיאה בהוספת המתכון. אנא נסה שוב.' });
-      } finally {
+    } catch (err) {
+      console.error(err);
+      setErrors({ submit: err.message || 'שגיאה בהוספת המתכון' });
+    } finally {
       setLoading(false);
     }
   };
@@ -235,9 +217,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="הזן שם מתכון"
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${
-                  errors.name ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
-                }`}
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${errors.name ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
+                  }`}
                 disabled={loading}
               />
               {errors.name && <p className="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2">{errors.name}</p>}
@@ -251,9 +232,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               <select
                 value={formData.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${
-                  errors.category ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
-                }`}
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${errors.category ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
+                  }`}
                 disabled={loading}
               >
                 <option value="">בחר קטגוריה</option>
@@ -275,9 +255,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                 onChange={(e) => handleInputChange('prepTime', e.target.value)}
                 placeholder="30"
                 min="1"
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
-                  errors.prepTime ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
-                }`}
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${errors.prepTime ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
+                  }`}
                 disabled={loading}
               />
               {errors.prepTime && <p className="text-red-600 text-sm mt-2">{errors.prepTime}</p>}
@@ -312,9 +291,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                 value={formData.image}
                 onChange={(e) => handleInputChange('image', e.target.value)}
                 placeholder="https://example.com/image.jpg"
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${
-                  errors.image ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
-                }`}
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${errors.image ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
+                  }`}
                 disabled={loading}
               />
               {errors.image && <p className="text-red-600 text-sm mt-2">{errors.image}</p>}
@@ -432,22 +410,20 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                     className="sr-only"
                     disabled={loading}
                   />
-                  <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center transition-all duration-200 ${
-                    formData.tags.includes(tag)
+                  <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center transition-all duration-200 ${formData.tags.includes(tag)
                       ? 'bg-orange-500 border-orange-500'
-                      : errors.tags 
+                      : errors.tags
                         ? 'border-red-500 group-hover:border-red-400'
                         : 'border-gray-300 group-hover:border-orange-300'
-                  }`}>
+                    }`}>
                     {formData.tags.includes(tag) && (
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     )}
                   </div>
-                  <span className={`text-gray-700 transition-colors duration-200 text-sm ${
-                    formData.tags.includes(tag) ? 'text-orange-600 font-medium' : ''
-                  }`}>
+                  <span className={`text-gray-700 transition-colors duration-200 text-sm ${formData.tags.includes(tag) ? 'text-orange-600 font-medium' : ''
+                    }`}>
                     {tag}
                   </span>
                 </label>
