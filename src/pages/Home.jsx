@@ -204,31 +204,15 @@ const Home = () => {
       alert(successMessage);
     } catch (err) {
       console.error("Error adding recipe:", err);
-      
+
       // Check if it's a validation error or server error
-      if (err.message.includes('נדרש') || err.message.includes('תקינים')) {
+      if (err.message && (err.message.includes('נדרש') || err.message.includes('תקינים'))) {
         alert(`שגיאת ולידציה: ${err.message}`);
-        return; // Don't add locally if it's a validation error
+        return; // validation error - inform user
       }
-      
-      alert("שגיאה בחיבור לשרת. המתכון נוסף מקומית בלבד.");
-      // Add locally as fallback only for server errors
-      const localRecipe = {
-        ...newRecipe,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        isNew: true
-      };
-      setRecipes(prev => [localRecipe, ...prev]);
-      
-      // Remove the animation flag after a short delay
-      setTimeout(() => {
-        setRecipes(prev => prev.map(recipe => 
-          recipe.id === localRecipe.id
-            ? { ...recipe, isNew: false }
-            : recipe
-        ));
-      }, 1000);
+
+      // Do NOT silently save locally. Surface the error so the user can retry.
+      alert("שגיאה בחיבור לשרת. המתכון לא נשמר בשרת. אנא נסה שוב.");
     } finally {
       setIsAddingRecipe(false);
     }
@@ -335,25 +319,7 @@ const Home = () => {
       alert('המתכון נוסף בהצלחה למתכונים שלך!');
     } catch (err) {
       console.error('Error adding AI recipe:', err);
-      // Fallback: add locally
-      const localRecipe = {
-        ...recipe,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        isNew: true
-      };
-      setRecipes(prev => [localRecipe, ...prev]);
-      
-      // Remove the animation flag after a short delay
-      setTimeout(() => {
-        setRecipes(prev => prev.map(r => 
-          r.id === localRecipe.id
-            ? { ...r, isNew: false }
-            : r
-        ));
-      }, 1000);
-      
-      alert('המתכון נוסף למתכונים שלך (שמירה מקומית)');
+      alert('שגיאה בחיבור לשרת. המתכון לא נשמר בשרת. אנא נסה שוב.');
     }
   };
 
@@ -386,6 +352,15 @@ const Home = () => {
       alert("אנא בחר לפחות מתכון אחד כדי ליצור רשימת קניות.");
       return;
     }
+    // Validate that all selected recipes have server-side IDs (Mongo ObjectId)
+    const isObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
+    const invalidRecipes = selectedRecipes.filter(r => !isObjectId(r._id || r.id));
+    if (invalidRecipes.length > 0) {
+      const names = invalidRecipes.map(r => r.title || r.name || r.id).join(', ');
+      alert(`יש מתכונים שלא נשמרו בשרת: ${names}. שמור את המתכונים בשרת לפני יצירת רשימת קניות.`);
+      return;
+    }
+
     try {
       const list = await buildShoppingList({
         userId: "currentUserId",

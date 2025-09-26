@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { addRecipe } from '../api';
+
 const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -152,22 +153,24 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     try {
       // Tu peux réutiliser ton objet actuel, l'API fera le mapping:
       const newRecipe = {
-        name: formData.name.trim(),
+        title: formData.name.trim(),
+        photoUrl: formData.image || '',
+        tags: formData.tags || [],
         category: formData.category,
-        prepTime: `${parseInt(formData.prepTime, 10)} דק`,
-        prepTimeMinutes: parseInt(formData.prepTime, 10),
         difficulty: formData.difficulty || 'בינוני',
-        image: formData.image || '',
-        ingredients: formData.ingredients,        // strings OK, l'API parse en {name,qty,unit}
-        instructions: formData.instructions,
-        tags: formData.tags
+        prepTime: `${parseInt(formData.prepTime, 10)} דק`,
+        // prepTimeMinutes: parseInt(formData.prepTime, 10),
+        steps: formData.instructions,
+        ingredients: formData.ingredients,        // strings OK, API will parse into {name,qty,unit}
       };
+      console.log('AddRecipeModal - prepared newRecipe payload:', newRecipe);
 
-      const saved = await addRecipe(newRecipe);  // 🔗 ENVOI AU BACKEND (sauvegarde DB)
-      onAddRecipe?.(saved);                      // optionnel : MAJ de l’état côté front avec la réponse
+      const saved = await addRecipe(newRecipe);  // send to backend (should persist in DB)
+      console.log('AddRecipeModal - saved response:', saved);
+      onAddRecipe?.(saved);                      // update front state with server response
 
       // reset + close
-      setFormData({ name: '', category: '', prepTime: '', difficulty: '', image: '', ingredients: [''], instructions: [''], tags: [] });
+      setFormData({ title: '', photoUrl: '', tags: [], category: '', difficulty: '', prepTime: '', steps: [''], ingredients: [''] });
       setErrors({});
       onClose();
     } catch (err) {
@@ -411,10 +414,10 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
                     disabled={loading}
                   />
                   <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center transition-all duration-200 ${formData.tags.includes(tag)
-                      ? 'bg-orange-500 border-orange-500'
-                      : errors.tags
-                        ? 'border-red-500 group-hover:border-red-400'
-                        : 'border-gray-300 group-hover:border-orange-300'
+                    ? 'bg-orange-500 border-orange-500'
+                    : errors.tags
+                      ? 'border-red-500 group-hover:border-red-400'
+                      : 'border-gray-300 group-hover:border-orange-300'
                     }`}>
                     {formData.tags.includes(tag) && (
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">

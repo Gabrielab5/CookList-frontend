@@ -1,49 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-// Enhanced API service with proper error handling and loading states
-class ApiService {
-  constructor() {
-    this.baseURL = API_URL;
-  }
-
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    };
-
-    try {
-      const response = await fetch(url, config);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('API Request failed:', error);
-      throw error;
-    }
-  }
-
-  async get(endpoint) {
-    return this.request(endpoint, { method: 'GET' });
-  }
-
-  async post(endpoint, data) {
-    return this.request(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-}
-
-const apiService = new ApiService();
+import apiService from './services/api';
 
 // Fetch all recipes with proper error handling
 export async function fetchRecipes() {
@@ -72,7 +28,7 @@ export async function fetchRecipes() {
 export async function addRecipe(recipeData) {
   try {
     // Process ingredients - convert strings to objects with name, qty, unit
-    const processedIngredients = (recipeData.ingredients || []).map(ingredient => {
+  const processedIngredients = (recipeData.ingredients || []).map(ingredient => {
       if (typeof ingredient === 'string') {
         // Parse string ingredients like "2 כוסות קמח" or "מלח"
         const parts = ingredient.trim().split(' ');
@@ -82,7 +38,7 @@ export async function addRecipe(recipeData) {
           const name = parts.slice(2).join(' ');
           return {
             name: name || ingredient,
-            qty: isNaN(qty) ? 1 : qty,
+            qty: Number.isFinite(qty) ? qty : (isNaN(qty) ? 1 : Number(qty)),
             unit: unit || 'יחידה'
           };
         } else {
@@ -94,10 +50,11 @@ export async function addRecipe(recipeData) {
           };
         }
       } else if (ingredient && typeof ingredient === 'object') {
-        // Already formatted correctly
+        // Already formatted correctly - coerce qty to number
+        const qtyVal = Number(ingredient.qty ?? ingredient.quantity ?? 1);
         return {
           name: ingredient.name || ingredient.ingredientName || '',
-          qty: ingredient.qty || 1,
+          qty: Number.isFinite(qtyVal) && qtyVal > 0 ? qtyVal : 1,
           unit: ingredient.unit || 'יחידה'
         };
       }
@@ -115,6 +72,15 @@ export async function addRecipe(recipeData) {
       steps: recipeData.steps || recipeData.instructions || [],
       ingredients: processedIngredients
     };
+
+  // Debug: show the exact payload sent to backend
+    console.log('Posting recipe to backend:', formattedRecipe);
+
+    // Client-side guard: ensure required fields exist before sending
+    if (!formattedRecipe.title || !Array.isArray(formattedRecipe.ingredients) || formattedRecipe.ingredients.length === 0) {
+      console.error('addRecipe: Payload missing required fields:', formattedRecipe);
+      throw new Error('Title and at least one ingredient are required');
+    }
 
     const response = await apiService.post('/recipes', formattedRecipe);
     console.log("Recipe added successfully:", response);
@@ -183,30 +149,15 @@ export async function generateRecipe(promptData) {
  */
 export async function buildShoppingList({ userId, title, recipeIds }) {
   try {
-    const res = await fetch(`${API_URL}/lists/build`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, recipeIds }),
-    });
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+    const payload = { title, recipeIds, userId };
+    const response = await apiService.post('/lists/build', payload);
+    console.log('Shopping list created (apiService):', response);
+
+    // Normalize server response
+    if (response && response.success && response.data) {
+      return { ...response.data, serverMessage: response.message };
     }
-    
-    const response = await res.json();
-    console.log("Shopping list created:", response);
-    
-    // Handle different response formats
-    if (response.success && response.data) {
-      // Include the message from server response for missing ingredients info
-      return {
-        ...response.data,
-        serverMessage: response.message
-      };
-    } else {
-      return response;
-    }
+    return response;
   } catch (error) {
     console.error("Error building shopping list:", error);
     throw new Error(`שגיאה ביצירת רשימת הקניות: ${error.message}`);
