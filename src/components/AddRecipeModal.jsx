@@ -3,14 +3,15 @@ import { addRecipe } from '../api';
 
 const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
+    photoUrl: '',
+    tags: [],
     category: '',
-    prepTime: '',
     difficulty: '',
-    image: '',
-    ingredients: [''],
-    instructions: [''],
-    tags: []
+    prepTime: '',
+    steps: [''],
+    ingredients: ['']
+   
   });
 
   const [errors, setErrors] = useState({});
@@ -60,28 +61,28 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     }
   };
 
-  const handleInstructionChange = (index, value) => {
-    const newInstructions = [...formData.instructions];
-    newInstructions[index] = value;
+  const handleStepChange = (index, value) => {
+    const newSteps = [...formData.steps];
+    newSteps[index] = value;
     setFormData(prev => ({
       ...prev,
-      instructions: newInstructions
+      steps: newSteps
     }));
   };
 
-  const addInstruction = () => {
+  const addStep = () => {
     setFormData(prev => ({
       ...prev,
-      instructions: [...prev.instructions, '']
+      steps: [...prev.steps, '']
     }));
   };
 
-  const removeInstruction = (index) => {
-    if (formData.instructions.length > 1) {
-      const newInstructions = formData.instructions.filter((_, i) => i !== index);
+  const removeStep = (index) => {
+    if (formData.steps.length > 1) {
+      const newSteps = formData.steps.filter((_, i) => i !== index);
       setFormData(prev => ({
         ...prev,
-        instructions: newInstructions
+        steps: newSteps
       }));
     }
   };
@@ -99,7 +100,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     const newErrors = {};
 
     // Required fields validation
-    if (!formData.name.trim()) newErrors.name = 'שם המתכון נדרש';
+    if (!formData.title.trim()) newErrors.title = 'שם המתכון נדרש';
     if (!formData.category) newErrors.category = 'קטגוריה נדרשת';
     if (!formData.prepTime) newErrors.prepTime = 'זמן הכנה נדרש';
     if (formData.tags.length === 0) newErrors.tags = 'נדרש לפחות תג אחד';
@@ -108,9 +109,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     if (formData.prepTime && (isNaN(formData.prepTime) || formData.prepTime <= 0)) {
       newErrors.prepTime = 'זמן הכנה חייב להיות מספר חיובי';
     }
-    if (formData.servings && (isNaN(formData.servings) || formData.servings <= 0)) {
-      newErrors.servings = 'מספר מנות חייב להיות מספר חיובי';
-    }
+    
 
     // Ingredients validation
     const validIngredients = formData.ingredients.filter(ing => ing.trim());
@@ -119,14 +118,14 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     }
 
     // Instructions validation
-    const validInstructions = formData.instructions.filter(inst => inst.trim());
-    if (validInstructions.length === 0) {
-      newErrors.instructions = 'נדרש לפחות הוראה אחת';
+    const validSteps = formData.steps.filter(step => step.trim());
+    if (validSteps.length === 0) {
+      newErrors.steps = 'נדרש לפחות הוראה אחת';
     }
 
     // Image URL validation (optional but if provided, should be valid)
-    if (formData.image && !isValidUrl(formData.image)) {
-      newErrors.image = 'אנא הזן כתובת תמונה תקינה';
+    if (formData.photoUrl && !isValidUrl(formData.photoUrl)) {
+      newErrors.photoUrl = 'אנא הזן כתובת תמונה תקינה';
     }
 
     setErrors(newErrors);
@@ -153,14 +152,14 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     try {
       // Tu peux réutiliser ton objet actuel, l'API fera le mapping:
       const newRecipe = {
-        title: formData.name.trim(),
-        photoUrl: formData.image || '',
+        title: formData.title.trim(),
+        photoUrl: formData.photoUrl || '',
         tags: formData.tags || [],
         category: formData.category,
         difficulty: formData.difficulty || 'בינוני',
         prepTime: `${parseInt(formData.prepTime, 10)} דק`,
         // prepTimeMinutes: parseInt(formData.prepTime, 10),
-        steps: formData.instructions,
+        steps: formData.steps,
         ingredients: formData.ingredients,        // strings OK, API will parse into {name,qty,unit}
       };
       console.log('AddRecipeModal - prepared newRecipe payload:', newRecipe);
@@ -217,14 +216,14 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               </label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="הזן שם מתכון"
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${errors.name ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-sm sm:text-base lg:text-lg ${errors.title ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
                   }`}
                 disabled={loading}
               />
-              {errors.name && <p className="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2">{errors.name}</p>}
+              {errors.title && <p className="text-red-600 text-xs sm:text-sm mt-1 sm:mt-2">{errors.title}</p>}
             </div>
 
             {/* Category */}
@@ -291,14 +290,14 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               </label>
               <input
                 type="url"
-                value={formData.image}
-                onChange={(e) => handleInputChange('image', e.target.value)}
+                value={formData.photoUrl}
+                onChange={(e) => handleInputChange('photoUrl', e.target.value)}
                 placeholder="https://example.com/image.jpg"
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${errors.image ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200 text-lg ${errors.photoUrl ? 'border-red-500' : 'border-gray-200 focus:border-orange-500'
                   }`}
                 disabled={loading}
               />
-              {errors.image && <p className="text-red-600 text-sm mt-2">{errors.image}</p>}
+              {errors.photoUrl && <p className="text-red-600 text-sm mt-2">{errors.photoUrl}</p>}
             </div>
           </div>
 
@@ -350,23 +349,23 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
               הוראות הכנה *
             </label>
             <div className="space-y-3">
-              {formData.instructions.map((instruction, index) => (
+              {formData.steps.map((step, index) => (
                 <div key={index} className="flex gap-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                     {index + 1}
                   </div>
                   <textarea
-                    value={instruction}
-                    onChange={(e) => handleInstructionChange(index, e.target.value)}
+                    value={step}
+                    onChange={(e) => handleStepChange(index, e.target.value)}
                     placeholder={`שלב ${index + 1}`}
                     rows={2}
                     className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-lg resize-none"
                     disabled={loading}
                   />
-                  {formData.instructions.length > 1 && (
+                  {formData.steps.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => removeInstruction(index)}
+                      onClick={() => removeStep(index)}
                       disabled={loading}
                       className="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-200 disabled:opacity-50"
                     >
@@ -380,13 +379,13 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
             </div>
             <button
               type="button"
-              onClick={addInstruction}
+              onClick={addStep}
               disabled={loading}
               className="mt-3 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 disabled:opacity-50"
             >
               + הוסף שלב
             </button>
-            {errors.instructions && <p className="text-red-600 text-sm mt-2">{errors.instructions}</p>}
+            {errors.steps && <p className="text-red-600 text-sm mt-2">{errors.steps}</p>}
           </div>
 
           {/* Tags */}
