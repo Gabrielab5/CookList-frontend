@@ -177,61 +177,27 @@ const Home = () => {
   }, [recipes, filters]);
 
   // Handle adding new recipe via API
-  const handleAddNewRecipe = async (newRecipe) => {
-    try {
-      setIsAddingRecipe(true);
-      const savedRecipe = await addRecipe(newRecipe);
-      
-      // Add the recipe with a new flag for animation
-      const recipeWithAnimation = {
-        ...savedRecipe,
-        isNew: true
-      };
-      
-      setRecipes(prev => [recipeWithAnimation, ...prev]);
-      
-      // Remove the animation flag after a short delay
-      setTimeout(() => {
-        setRecipes(prev => prev.map(recipe => 
-          recipe._id === savedRecipe._id || recipe.id === savedRecipe.id
-            ? { ...recipe, isNew: false }
-            : recipe
-        ));
-      }, 1000);
-      
-      // Show success message with missing ingredients info if any
-      const successMessage = savedRecipe.message || "המתכון נוסף בהצלחה!";
-      alert(successMessage);
-    } catch (err) {
-      console.error("Error adding recipe:", err);
-      
-      // Check if it's a validation error or server error
-      if (err.message.includes('נדרש') || err.message.includes('תקינים')) {
-        alert(`שגיאת ולידציה: ${err.message}`);
-        return; // Don't add locally if it's a validation error
-      }
-      
-      alert("שגיאה בחיבור לשרת. המתכון נוסף מקומית בלבד.");
-      // Add locally as fallback only for server errors
-      const localRecipe = {
-        ...newRecipe,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        isNew: true
-      };
-      setRecipes(prev => [localRecipe, ...prev]);
-      
-      // Remove the animation flag after a short delay
-      setTimeout(() => {
-        setRecipes(prev => prev.map(recipe => 
-          recipe.id === localRecipe.id
-            ? { ...recipe, isNew: false }
-            : recipe
-        ));
-      }, 1000);
-    } finally {
-      setIsAddingRecipe(false);
-    }
+  const handleAddNewRecipe = (savedRecipe) => {
+    // Add the recipe with a new flag for animation
+    const recipeWithAnimation = {
+      ...savedRecipe,
+      isNew: true
+    };
+
+    setRecipes(prev => [recipeWithAnimation, ...prev]);
+
+    // Remove the animation flag after a short delay
+    setTimeout(() => {
+      setRecipes(prev => prev.map(recipe =>
+        recipe._id === savedRecipe._id || recipe.id === savedRecipe.id
+          ? { ...recipe, isNew: false }
+          : recipe
+      ));
+    }, 1000);
+
+    // Show success message with missing ingredients info if any
+    const successMessage = savedRecipe.message || "המתכון נוסף בהצלחה!";
+    alert(successMessage);
   };
 
   // Handle AI recipe generation
@@ -335,25 +301,7 @@ const Home = () => {
       alert('המתכון נוסף בהצלחה למתכונים שלך!');
     } catch (err) {
       console.error('Error adding AI recipe:', err);
-      // Fallback: add locally
-      const localRecipe = {
-        ...recipe,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        isNew: true
-      };
-      setRecipes(prev => [localRecipe, ...prev]);
-      
-      // Remove the animation flag after a short delay
-      setTimeout(() => {
-        setRecipes(prev => prev.map(r => 
-          r.id === localRecipe.id
-            ? { ...r, isNew: false }
-            : r
-        ));
-      }, 1000);
-      
-      alert('המתכון נוסף למתכונים שלך (שמירה מקומית)');
+      alert('שגיאה בחיבור לשרת. המתכון לא נשמר בשרת. אנא נסה שוב.');
     }
   };
 
@@ -386,6 +334,15 @@ const Home = () => {
       alert("אנא בחר לפחות מתכון אחד כדי ליצור רשימת קניות.");
       return;
     }
+    // Validate that all selected recipes have server-side IDs (Mongo ObjectId)
+    const isObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
+    const invalidRecipes = selectedRecipes.filter(r => !isObjectId(r._id || r.id));
+    if (invalidRecipes.length > 0) {
+      const names = invalidRecipes.map(r => r.title || r.name || r.id).join(', ');
+      alert(`יש מתכונים שלא נשמרו בשרת: ${names}. שמור את המתכונים בשרת לפני יצירת רשימת קניות.`);
+      return;
+    }
+
     try {
       const list = await buildShoppingList({
         userId: "currentUserId",
