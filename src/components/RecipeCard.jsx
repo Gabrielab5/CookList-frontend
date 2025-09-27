@@ -6,7 +6,7 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavor
   // Use title (new structure) or fallback to name (old structure)
   const recipeTitle = title || recipe.name || 'מתכון ללא שם';
   const recipeImage = photoUrl || recipe.image || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
-  const recipePrepTime = prepTimeMinutes || (prepTime ? parseInt(prepTime) : 0);
+  const recipePrepTime = prepTime || (prepTimeMinutes ? `${prepTimeMinutes} דק` : '0 דק');
 
   const handleCardClick = (e) => {
     // Prevent event bubbling when clicking on buttons
@@ -73,7 +73,7 @@ const RecipeCard = ({ recipe, onSelect, onViewDetails, isFavorite, onToggleFavor
           
           {/* Prep Time */}
           <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-700">
-            {recipePrepTime} דקות
+            {recipePrepTime}
           </div>
         </div>
       </div>

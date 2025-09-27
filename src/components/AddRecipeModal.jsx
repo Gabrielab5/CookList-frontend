@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect, useMemo } from 'react';
 import { addRecipe } from '../api';
+import { extractCategoriesFromRecipes, extractTagsFromRecipes, getDefaultCategories, getDefaultTags } from '../utils/categoryUtils';
 
-const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
+const AddRecipeModal = ({ recipes = [], isOpen, onClose, onAddRecipe }) => {
   const [formData, setFormData] = useState({
     title: '',
     photoUrl: '',
@@ -23,8 +23,16 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     }
   }, [isOpen]);
 
-  const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים'];
-  const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'];
+  // Extract dynamic categories and tags from recipes, with fallbacks
+  const categories = useMemo(() => {
+    const dynamicCategories = extractCategoriesFromRecipes(recipes);
+    return dynamicCategories.length > 0 ? dynamicCategories : getDefaultCategories();
+  }, [recipes]);
+
+  const availableTags = useMemo(() => {
+    const dynamicTags = extractTagsFromRecipes(recipes);
+    return dynamicTags.length > 0 ? dynamicTags : getDefaultTags();
+  }, [recipes]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({

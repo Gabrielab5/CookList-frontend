@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { extractCategoriesFromRecipes, extractTagsFromRecipes, getDefaultCategories, getDefaultTags } from '../utils/categoryUtils';
 
-const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
+const FilterSidebar = ({ recipes = [], onFilterChange, onIngredientSearch }) => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [ingredientSearch, setIngredientSearch] = useState('');
   const [excludeIngredients, setExcludeIngredients] = useState('');
@@ -100,8 +101,16 @@ const FilterSidebar = ({ onFilterChange, onIngredientSearch }) => {
     });
   };
 
-  const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'].sort((a, b) => a.localeCompare(b, 'he-IL'));
-  const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים', 'צמחוני'].sort((a, b) => a.localeCompare(b, 'he-IL'));
+  // Extract dynamic categories and tags from recipes, with fallbacks
+  const availableTags = useMemo(() => {
+    const dynamicTags = extractTagsFromRecipes(recipes);
+    return dynamicTags.length > 0 ? dynamicTags : getDefaultTags();
+  }, [recipes]);
+
+  const categories = useMemo(() => {
+    const dynamicCategories = extractCategoriesFromRecipes(recipes);
+    return dynamicCategories.length > 0 ? dynamicCategories : getDefaultCategories();
+  }, [recipes]);
   const pantryItems = ['אורז', 'פסטה', 'לחם', 'קמח', 'סוכר', 'מלח', 'פלפל', 'שמן זית', 'חמאה', 'ביצים', 'חלב', 'גבינה', 'עגבניות', 'בצלים', 'שום'].sort((a, b) => a.localeCompare(b, 'he-IL'));
 
   const hasActiveFilters = selectedTags.length > 0 || ingredientSearch || excludeIngredients || 
