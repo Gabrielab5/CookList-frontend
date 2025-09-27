@@ -29,6 +29,42 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
     }
   }, [selectedRecipes]);
 
+  // Create a mapping of ingredient names to departments from available recipe data
+  const createIngredientDeptMapping = (recipes) => {
+    const mapping = new Map();
+    
+    recipes.forEach(recipe => {
+      if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+        recipe.ingredients.forEach(ingredient => {
+          if (ingredient.ingredientId && ingredient.ingredientId.name && ingredient.ingredientId.dept) {
+            mapping.set(ingredient.ingredientId.name.toLowerCase(), ingredient.ingredientId.dept);
+          }
+        });
+      }
+    });
+    
+    return mapping;
+  };
+
+  // Function to get department for an ingredient name
+  const getIngredientDepartment = (ingredientName, mapping) => {
+    if (!ingredientName) return 'אחר';
+    
+    // Try exact match first
+    const exactMatch = mapping.get(ingredientName.toLowerCase());
+    if (exactMatch) return exactMatch;
+    
+    // Try partial matches for compound ingredient names
+    const nameLower = ingredientName.toLowerCase();
+    for (const [mappedName, dept] of mapping.entries()) {
+      if (nameLower.includes(mappedName) || mappedName.includes(nameLower)) {
+        return dept;
+      }
+    }
+    
+    return 'אחר';
+  };
+
   // Generate shopping list from selected recipes OR load from localStorage
   useEffect(() => {
     if (currentShoppingList) {
@@ -45,6 +81,9 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
       }
     } else if (effectiveRecipes.length > 0) {
       const allIngredients = [];
+      
+      // Create ingredient name to department mapping from all recipe data
+      const ingredientDeptMapping = createIngredientDeptMapping(selectedRecipes);
       
       selectedRecipes.forEach(recipe => {
         recipe.ingredients.forEach(ingredient => {
@@ -79,6 +118,9 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               qty = 1;
               unit = 'יחידה';
             }
+            
+            // Look up department based on ingredient name
+            ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
           } else if (typeof ingredient === 'object' && ingredient !== null) {
           // Handle different ingredient structures from backend
           
@@ -91,13 +133,13 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
           } else if (ingredient.ingredientName) {
             // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
             ingredientName = ingredient.ingredientName;
-            ingredientDept = ingredient.dept || 'אחר';
+            ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
             qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
             unit = ingredient.unit || 'יחידה';
           } else if (ingredient.name) {
             // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
             ingredientName = ingredient.name;
-            ingredientDept = ingredient.dept || 'אחר';
+            ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
             qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
             unit = ingredient.unit || 'יחידה';
           }
@@ -113,13 +155,13 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
             } else if (ingredient.text) {
               ingredientName = ingredient.text;
               ingredientDisplay = ingredient.text;
-              ingredientDept = 'אחר';
+              ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
               qty = 1;
               unit = 'יחידה';
             } else if (ingredient.description) {
               ingredientName = ingredient.description;
               ingredientDisplay = ingredient.description;
-              ingredientDept = 'אחר';
+              ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
               qty = 1;
               unit = 'יחידה';
             } else {
@@ -130,7 +172,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               if (values.length > 0) {
                 ingredientName = values[values.length - 1]; // Use last value as name (usually the actual ingredient)
                 ingredientDisplay = values.join(' ');
-                ingredientDept = 'אחר';
+                ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
                 qty = 1;
                 unit = 'יחידה';
               } else {
