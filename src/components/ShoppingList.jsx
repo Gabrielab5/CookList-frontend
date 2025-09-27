@@ -7,19 +7,6 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
   const [currentShoppingList, setCurrentShoppingList] = useState(null);
   const [effectiveRecipes, setEffectiveRecipes] = useState([]);
 
-  // Ingredient categories for organization
-  const ingredientCategories = {
-    'ירקות ופירות': ['עגבנייה', 'בצל', 'שום', 'גזר', 'סלרי', 'חסה', 'תרד', 'פלפל מתוק', 'מלפפון', 'תפוח אדמה', 'תפוח', 'בננה', 'לימון', 'ליים', 'עשבי תיבול', 'בזיליקום', 'פטרוזיליה', 'כוסברה', 'נענע', 'טימין', 'רוזמרין'],
-    'חלב ומוצריו': ['חלב', 'גבינה', 'חמאה', 'שמנת', 'יוגורט', 'שמנת חמוצה', 'מוצרלה', 'צ\'דר', 'פרמזן', 'ריקוטה', 'פטה'],
-    'בשר ודגים': ['עוף', 'בקר', 'דג', 'סלמון', 'שרימפ', 'הודו', 'בייקון', 'חזה הודו', 'נקניק', 'בשר טחון', 'סטייק'],
-    'מזווה': ['אורז', 'פסטה', 'לחם', 'קמח', 'סוכר', 'מלח', 'פלפל', 'שמן זית', 'שמן צמחי', 'חומץ', 'רוטב סויה', 'דבש', 'סירופ מייפל'],
-    'קפוא': ['ירקות קפואים', 'פירות קפואים', 'גלידה', 'ארוחות קפואות'],
-    'מאפייה': ['לחם', 'בייגל', 'קרואסון', 'מאפין', 'קרקרים', 'טורטיות'],
-    'משקאות': ['מים', 'מיץ', 'סודה', 'קפה', 'תה', 'יין', 'בירה'],
-    'תבלינים': ['מלח', 'פלפל', 'אבקת שום', 'אבקת בצל', 'פפריקה', 'כמון', 'אורגנו', 'עלי דפנה', 'קינמון', 'אגוז מוסקט'],
-    'שימורים': ['רוטב עגבניות', 'רסק עגבניות', 'עגבניות משומרות', 'שעועית', 'ציר', 'מרק', 'חמוצים', 'זיתים'],
-    'אחר': []
-  };
 
   // Load current shopping list from localStorage if no selectedRecipes
   useEffect(() => {
@@ -68,6 +55,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
           let ingredientDisplay = '';
           let qty = 0;
           let unit = '';
+          let ingredientDept = 'אחר'; // Default department
           
           if (typeof ingredient === 'string') {
             // Try to parse string like "2 כוסות קמח" or just "מלח"
@@ -92,23 +80,27 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               unit = 'יחידה';
             }
           } else if (typeof ingredient === 'object' && ingredient !== null) {
-            // Handle different ingredient structures from backend
-            if (ingredient.ingredientId && ingredient.ingredientId.name) {
-              // Backend populated structure: {ingredientId: {name: "..."}, qty: 1, unit: "יחידה"}
-              ingredientName = ingredient.ingredientId.name;
-              qty = parseFloat(ingredient.qty || 1);
-              unit = ingredient.unit || 'יחידה';
-            } else if (ingredient.ingredientName) {
-              // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
-              ingredientName = ingredient.ingredientName;
-              qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
-              unit = ingredient.unit || 'יחידה';
-            } else if (ingredient.name) {
-              // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
-              ingredientName = ingredient.name;
-              qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
-              unit = ingredient.unit || 'יחידה';
-            }
+          // Handle different ingredient structures from backend
+          
+          if (ingredient.ingredientId && ingredient.ingredientId.name) {
+            // Backend populated structure: {ingredientId: {name: "...", dept: "..."}, qty: 1, unit: "יחידה"}
+            ingredientName = ingredient.ingredientId.name;
+            ingredientDept = ingredient.ingredientId.dept || 'אחר';
+            qty = parseFloat(ingredient.qty || 1);
+            unit = ingredient.unit || 'יחידה';
+          } else if (ingredient.ingredientName) {
+            // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
+            ingredientName = ingredient.ingredientName;
+            ingredientDept = ingredient.dept || 'אחר';
+            qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
+            unit = ingredient.unit || 'יחידה';
+          } else if (ingredient.name) {
+            // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
+            ingredientName = ingredient.name;
+            ingredientDept = ingredient.dept || 'אחר';
+            qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
+            unit = ingredient.unit || 'יחידה';
+          }
             
             // Format display with full string: "qty unit name"
             if (ingredientName) {
@@ -121,11 +113,13 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
             } else if (ingredient.text) {
               ingredientName = ingredient.text;
               ingredientDisplay = ingredient.text;
+              ingredientDept = 'אחר';
               qty = 1;
               unit = 'יחידה';
             } else if (ingredient.description) {
               ingredientName = ingredient.description;
               ingredientDisplay = ingredient.description;
+              ingredientDept = 'אחר';
               qty = 1;
               unit = 'יחידה';
             } else {
@@ -136,6 +130,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               if (values.length > 0) {
                 ingredientName = values[values.length - 1]; // Use last value as name (usually the actual ingredient)
                 ingredientDisplay = values.join(' ');
+                ingredientDept = 'אחר';
                 qty = 1;
                 unit = 'יחידה';
               } else {
@@ -186,7 +181,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               unit: unit,
               quantity: 1, // Keep for backward compatibility
               recipes: [recipe.title || recipe.name],
-              category: categorizeIngredient(ingredientName),
+              category: ingredientDept,
               checked: false
             });
           }
@@ -224,18 +219,6 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
     }
   }, [selectedRecipes, effectiveRecipes, currentShoppingList]);
 
-  // Categorize ingredient based on keywords
-  const categorizeIngredient = (ingredient) => {
-    const ingredientLower = ingredient.toLowerCase();
-    
-    for (const [category, keywords] of Object.entries(ingredientCategories)) {
-      if (keywords.some(keyword => ingredientLower.includes(keyword))) {
-        return category;
-      }
-    }
-    
-    return 'אחר';
-  };
 
   // Group items by category
   const groupedItems = useMemo(() => {
