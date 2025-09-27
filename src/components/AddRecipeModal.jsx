@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { addRecipe } from '../api';
 
 const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
@@ -11,11 +12,16 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
     prepTime: '',
     steps: [''],
     ingredients: ['']
-   
   });
-
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ title: '', photoUrl: '', tags: [], category: '', difficulty: '', prepTime: '', steps: [''], ingredients: [''] });
+      setErrors({});
+    }
+  }, [isOpen]);
 
   const categories = ['ארוחת בוקר', 'ארוחת צהריים', 'ארוחת ערב', 'קינוח', 'נשנוש', 'מתאבן', 'מרק', 'סלט', 'פסטה', 'בשר', 'דגים'];
   const availableTags = ['כשר', 'טבעוני', 'ללא גלוטן', 'צמחוני', 'ללא חלב', 'דל פחמימות', 'קטו', 'פליאו', 'ים תיכוני', 'אסייתי', 'מקסיקני', 'איטלקי'];
@@ -142,7 +148,11 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
   };
 
   const handleSubmit = async (e) => {
+  console.log('Raw ingredients at submit:', formData.ingredients);
     e.preventDefault();
+
+    // Prevent double submit
+    if (loading) return;
 
     if (!validateForm()) {
       return;
@@ -150,28 +160,34 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
 
     setLoading(true);
     try {
-      // Tu peux réutiliser ton objet actuel, l'API fera le mapping:
+      // Filter out empty ingredient strings before sending
+      const filteredIngredients = formData.ingredients.filter(ing => ing && ing.trim());
+      if (filteredIngredients.length === 0) {
+        setErrors({ ingredients: 'נדרש לפחות מרכיב אחד' });
+        setLoading(false);
+        return;
+      }
+      // Deep copy all fields to avoid mutation bugs
       const newRecipe = {
         title: formData.title.trim(),
         photoUrl: formData.photoUrl || '',
-        tags: formData.tags || [],
+        tags: [...(formData.tags || [])],
         category: formData.category,
         difficulty: formData.difficulty || 'בינוני',
         prepTime: `${parseInt(formData.prepTime, 10)} דק`,
-        // prepTimeMinutes: parseInt(formData.prepTime, 10),
-        steps: formData.steps,
-        ingredients: formData.ingredients,        // strings OK, API will parse into {name,qty,unit}
+        steps: [...formData.steps],
+        ingredients: [...filteredIngredients], // only non-empty ingredients
       };
       console.log('AddRecipeModal - prepared newRecipe payload:', newRecipe);
 
-      const saved = await addRecipe(newRecipe);  // send to backend (should persist in DB)
+      // Pass a deep copy to addRecipe
+      const saved = await addRecipe(JSON.parse(JSON.stringify(newRecipe)));
       console.log('AddRecipeModal - saved response:', saved);
-      onAddRecipe?.(saved);                      // update front state with server response
 
-      // reset + close
-      setFormData({ title: '', photoUrl: '', tags: [], category: '', difficulty: '', prepTime: '', steps: [''], ingredients: [''] });
       setErrors({});
-      onClose();
+      onClose(); // Close modal BEFORE calling onAddRecipe to avoid double submit
+      // Pass a deep copy to onAddRecipe
+      onAddRecipe?.(JSON.parse(JSON.stringify(saved)));
     } catch (err) {
       console.error(err);
       setErrors({ submit: err.message || 'שגיאה בהוספת המתכון' });
@@ -473,6 +489,6 @@ const AddRecipeModal = ({ isOpen, onClose, onAddRecipe }) => {
       </div>
     </div>
   );
-};
+}
 
 export default AddRecipeModal;

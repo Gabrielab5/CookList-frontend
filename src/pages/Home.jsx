@@ -177,45 +177,27 @@ const Home = () => {
   }, [recipes, filters]);
 
   // Handle adding new recipe via API
-  const handleAddNewRecipe = async (newRecipe) => {
-    try {
-      setIsAddingRecipe(true);
-      const savedRecipe = await addRecipe(newRecipe);
-      
-      // Add the recipe with a new flag for animation
-      const recipeWithAnimation = {
-        ...savedRecipe,
-        isNew: true
-      };
-      
-      setRecipes(prev => [recipeWithAnimation, ...prev]);
-      
-      // Remove the animation flag after a short delay
-      setTimeout(() => {
-        setRecipes(prev => prev.map(recipe => 
-          recipe._id === savedRecipe._id || recipe.id === savedRecipe.id
-            ? { ...recipe, isNew: false }
-            : recipe
-        ));
-      }, 1000);
-      
-      // Show success message with missing ingredients info if any
-      const successMessage = savedRecipe.message || "המתכון נוסף בהצלחה!";
-      alert(successMessage);
-    } catch (err) {
-      console.error("Error adding recipe:", err);
+  const handleAddNewRecipe = (savedRecipe) => {
+    // Add the recipe with a new flag for animation
+    const recipeWithAnimation = {
+      ...savedRecipe,
+      isNew: true
+    };
 
-      // Check if it's a validation error or server error
-      if (err.message && (err.message.includes('נדרש') || err.message.includes('תקינים'))) {
-        alert(`שגיאת ולידציה: ${err.message}`);
-        return; // validation error - inform user
-      }
+    setRecipes(prev => [recipeWithAnimation, ...prev]);
 
-      // Do NOT silently save locally. Surface the error so the user can retry.
-      alert("שגיאה בחיבור לשרת. המתכון לא נשמר בשרת. אנא נסה שוב.");
-    } finally {
-      setIsAddingRecipe(false);
-    }
+    // Remove the animation flag after a short delay
+    setTimeout(() => {
+      setRecipes(prev => prev.map(recipe =>
+        recipe._id === savedRecipe._id || recipe.id === savedRecipe.id
+          ? { ...recipe, isNew: false }
+          : recipe
+      ));
+    }, 1000);
+
+    // Show success message with missing ingredients info if any
+    const successMessage = savedRecipe.message || "המתכון נוסף בהצלחה!";
+    alert(successMessage);
   };
 
   // Handle AI recipe generation

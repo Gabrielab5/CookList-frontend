@@ -79,6 +79,9 @@ export async function addRecipe(recipeData) {
     // Client-side guard: ensure required fields exist before sending
     if (!formattedRecipe.title || !Array.isArray(formattedRecipe.ingredients) || formattedRecipe.ingredients.length === 0) {
       console.error('addRecipe: Payload missing required fields:', formattedRecipe);
+      console.error('title:', formattedRecipe.title);
+      console.error('ingredients:', formattedRecipe.ingredients);
+      console.error('steps:', formattedRecipe.steps);
       throw new Error('Title and at least one ingredient are required');
     }
 
