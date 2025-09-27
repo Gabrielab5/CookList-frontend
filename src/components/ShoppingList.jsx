@@ -92,20 +92,32 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               unit = 'יחידה';
             }
           } else if (typeof ingredient === 'object' && ingredient !== null) {
-            // Try different possible object structures
-            if (ingredient.name || ingredient.ingredientName) {
-              ingredientName = ingredient.name || ingredient.ingredientName;
+            // Handle different ingredient structures from backend
+            if (ingredient.ingredientId && ingredient.ingredientId.name) {
+              // Backend populated structure: {ingredientId: {name: "..."}, qty: 1, unit: "יחידה"}
+              ingredientName = ingredient.ingredientId.name;
+              qty = parseFloat(ingredient.qty || 1);
+              unit = ingredient.unit || 'יחידה';
+            } else if (ingredient.ingredientName) {
+              // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
+              ingredientName = ingredient.ingredientName;
               qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
               unit = ingredient.unit || 'יחידה';
+            } else if (ingredient.name) {
+              // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
+              ingredientName = ingredient.name;
+              qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
+              unit = ingredient.unit || 'יחידה';
+            }
+            
+            // Format display with full string: "qty unit name"
+            if (ingredientName) {
+              const parts = [];
+              if (qty && qty > 0) parts.push(qty);
+              if (unit && unit.trim()) parts.push(unit.trim());
+              parts.push(ingredientName.trim());
               
-              // Format display with quantity and unit
-              if (qty && unit && qty !== 1) {
-                ingredientDisplay = `${qty} ${unit} ${ingredientName}`;
-              } else if (unit && unit !== 'יחידה') {
-                ingredientDisplay = `${unit} ${ingredientName}`;
-              } else {
-                ingredientDisplay = ingredientName;
-              }
+              ingredientDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
             } else if (ingredient.text) {
               ingredientName = ingredient.text;
               ingredientDisplay = ingredient.text;

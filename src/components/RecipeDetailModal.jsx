@@ -26,53 +26,55 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
     );
   }
 
-  // Process ingredients for display
+  // Process ingredients for display - show full string from backend
   const getDisplayIngredients = () => {
     if (!recipe?.ingredients || !Array.isArray(recipe.ingredients)) return [];
     
     return recipe.ingredients.map(ingredient => {
-      // Handle string ingredients
+      // Handle string ingredients (already formatted)
       if (typeof ingredient === 'string') {
         return ingredient;
       }
       
-      // Handle object ingredients
+      // Handle object ingredients from backend
       if (typeof ingredient === 'object' && ingredient !== null) {
         let name = '';
         let qty = '';
         let unit = '';
         
-        // Try different possible structures
-        if (ingredient.name) {
-          name = ingredient.name;
-          qty = ingredient.qty || ingredient.quantity || '';
+        // Extract ingredient name from different possible structures
+        if (ingredient.ingredientId && ingredient.ingredientId.name) {
+          // Backend populated structure: {ingredientId: {name: "..."}, qty: 1, unit: "יחידה"}
+          name = ingredient.ingredientId.name;
+          qty = ingredient.qty || '';
           unit = ingredient.unit || '';
         } else if (ingredient.ingredientName) {
+          // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
           name = ingredient.ingredientName;
-          qty = ingredient.qty || ingredient.quantity || '';
+          qty = ingredient.qty || '';
           unit = ingredient.unit || '';
-        } else if (ingredient.text) {
-          return ingredient.text; // Already formatted text
-        } else if (ingredient.description) {
-          return ingredient.description; // Already formatted text
-        } else {
-          // Try to extract meaningful values
-          const values = Object.values(ingredient).filter(v => 
-            typeof v === 'string' && v.trim().length > 0
-          );
-          return values.join(' ') || 'מרכיב לא מזוהה';
+        } else if (ingredient.name) {
+          // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
+          name = ingredient.name;
+          qty = ingredient.qty || '';
+          unit = ingredient.unit || '';
+        } else if (ingredient.text || ingredient.description) {
+          // Already formatted text
+          return ingredient.text || ingredient.description;
         }
         
+        // Build the complete ingredient string: "qty unit name"
         if (name) {
-          const cleanUnit = unit ? unit.trim() : '';
-          const cleanName = name.trim();
-          // Format: "quantity unit name" ensuring all parts are included
-          const parts = [qty, cleanUnit, cleanName].filter(part => part && String(part).trim().length > 0);
+          const parts = [];
+          if (qty && qty > 0) parts.push(qty);
+          if (unit && unit.trim()) parts.push(unit.trim());
+          parts.push(name.trim());
+          
           return parts.join(' ').replace(/\s+/g, ' ').trim();
         }
       }
       
-      // Fallback
+      // Fallback for invalid ingredients
       return 'מרכיב לא תקין';
     }).filter(item => item && item !== 'מרכיב לא תקין');
   };
@@ -123,7 +125,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {/* <span className="text-white font-medium text-sm sm:text-base">{recipe.prepTime} דקות</span> */}
+                <span className="text-white font-medium text-sm sm:text-base">{recipe.prepTime || '0 דק'}</span>
               </div>
               <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,7 +259,7 @@ const RecipeDetailModal = ({ recipe, isOpen, onClose, onAddToShoppingList }) => 
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">זמן הכנה:</span>
-                        <span className="font-medium text-gray-900">{recipe.prepTime} דקות</span>
+                        <span className="font-medium text-gray-900">{recipe.prepTime || '0 דק'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">רמת קושי:</span>
