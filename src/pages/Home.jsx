@@ -490,6 +490,7 @@ const Home = () => {
           {isSidebarOpen && (
             <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 transition-all duration-300 ease-in-out">
               <FilterSidebar
+                recipes={recipes}
                 onFilterChange={setFilters}
                 onIngredientSearch={(search) => {}}
               />
@@ -604,6 +605,7 @@ const Home = () => {
                 </div>
 
       <AddRecipeModal
+        recipes={recipes}
         isOpen={isAddRecipeModalOpen}
         onClose={() => setIsAddRecipeModalOpen(false)}
         onAddRecipe={handleAddNewRecipe}

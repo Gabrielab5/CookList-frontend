@@ -112,32 +112,39 @@ const AiRecipePreviewModal = ({ isOpen, onClose, recipe, onAddToRecipes }) => {
                   if (typeof ingredient === 'string') {
                     ingredientDisplay = ingredient;
                   } else if (typeof ingredient === 'object' && ingredient !== null) {
-                    // Try different possible object structures
-                    if (ingredient.name) {
-                      // Structure: {name: "...", qty: "...", unit: "..."}
-                      const qty = ingredient.qty || ingredient.quantity || '';
-                      const unit = ingredient.unit || '';
-                      const name = ingredient.name;
-                      // Format: "quantity unit name" ensuring all parts are included
-                      const parts = [qty, unit, name].filter(part => part && String(part).trim().length > 0);
-                      ingredientDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
+                    // Handle different ingredient structures - display full string from backend
+                    let name = '';
+                    let qty = '';
+                    let unit = '';
+                    
+                    if (ingredient.ingredientId && ingredient.ingredientId.name) {
+                      // Backend populated structure: {ingredientId: {name: "..."}, qty: 1, unit: "יחידה"}
+                      name = ingredient.ingredientId.name;
+                      qty = ingredient.qty || '';
+                      unit = ingredient.unit || '';
                     } else if (ingredient.ingredientName) {
-                      // Structure: {ingredientName: "...", qty: "...", unit: "..."}
-                      const qty = ingredient.qty || ingredient.quantity || '';
-                      const unit = ingredient.unit || '';
-                      const name = ingredient.ingredientName;
-                      // Format: "quantity unit name" ensuring all parts are included
-                      const parts = [qty, unit, name].filter(part => part && String(part).trim().length > 0);
-                      ingredientDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
+                      // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
+                      name = ingredient.ingredientName;
+                      qty = ingredient.qty || '';
+                      unit = ingredient.unit || '';
+                    } else if (ingredient.name) {
+                      // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
+                      name = ingredient.name;
+                      qty = ingredient.qty || '';
+                      unit = ingredient.unit || '';
                     } else if (ingredient.text || ingredient.description) {
-                      // Structure: {text: "..."} or {description: "..."}
+                      // Already formatted text
                       ingredientDisplay = ingredient.text || ingredient.description;
-                    } else {
-                      // Try to extract any meaningful text from the object
-                      const values = Object.values(ingredient).filter(v => 
-                        typeof v === 'string' && v.trim().length > 0
-                      );
-                      ingredientDisplay = values.join(' ') || 'מרכיב לא מזוהה';
+                    }
+                    
+                    // Build the complete ingredient string: "qty unit name"
+                    if (name && !ingredientDisplay) {
+                      const parts = [];
+                      if (qty && qty > 0) parts.push(qty);
+                      if (unit && unit.trim()) parts.push(unit.trim());
+                      parts.push(name.trim());
+                      
+                      ingredientDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
                     }
                   } else {
                     // Fallback for null, undefined, or other types

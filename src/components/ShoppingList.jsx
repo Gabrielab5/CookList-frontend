@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from './Header';
+import { buildShoppingList } from '../api';
 
 const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) => {
   const [checkedItems, setCheckedItems] = useState({});
@@ -7,19 +8,6 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
   const [currentShoppingList, setCurrentShoppingList] = useState(null);
   const [effectiveRecipes, setEffectiveRecipes] = useState([]);
 
-  // Ingredient categories for organization
-  const ingredientCategories = {
-    'ירקות ופירות': ['עגבנייה', 'בצל', 'שום', 'גזר', 'סלרי', 'חסה', 'תרד', 'פלפל מתוק', 'מלפפון', 'תפוח אדמה', 'תפוח', 'בננה', 'לימון', 'ליים', 'עשבי תיבול', 'בזיליקום', 'פטרוזיליה', 'כוסברה', 'נענע', 'טימין', 'רוזמרין'],
-    'חלב ומוצריו': ['חלב', 'גבינה', 'חמאה', 'שמנת', 'יוגורט', 'שמנת חמוצה', 'מוצרלה', 'צ\'דר', 'פרמזן', 'ריקוטה', 'פטה'],
-    'בשר ודגים': ['עוף', 'בקר', 'דג', 'סלמון', 'שרימפ', 'הודו', 'בייקון', 'חזה הודו', 'נקניק', 'בשר טחון', 'סטייק'],
-    'מזווה': ['אורז', 'פסטה', 'לחם', 'קמח', 'סוכר', 'מלח', 'פלפל', 'שמן זית', 'שמן צמחי', 'חומץ', 'רוטב סויה', 'דבש', 'סירופ מייפל'],
-    'קפוא': ['ירקות קפואים', 'פירות קפואים', 'גלידה', 'ארוחות קפואות'],
-    'מאפייה': ['לחם', 'בייגל', 'קרואסון', 'מאפין', 'קרקרים', 'טורטיות'],
-    'משקאות': ['מים', 'מיץ', 'סודה', 'קפה', 'תה', 'יין', 'בירה'],
-    'תבלינים': ['מלח', 'פלפל', 'אבקת שום', 'אבקת בצל', 'פפריקה', 'כמון', 'אורגנו', 'עלי דפנה', 'קינמון', 'אגוז מוסקט'],
-    'שימורים': ['רוטב עגבניות', 'רסק עגבניות', 'עגבניות משומרות', 'שעועית', 'ציר', 'מרק', 'חמוצים', 'זיתים'],
-    'אחר': []
-  };
 
   // Load current shopping list from localStorage if no selectedRecipes
   useEffect(() => {
@@ -42,6 +30,42 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
     }
   }, [selectedRecipes]);
 
+  // Create a mapping of ingredient names to departments from available recipe data
+  const createIngredientDeptMapping = (recipes) => {
+    const mapping = new Map();
+    
+    recipes.forEach(recipe => {
+      if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+        recipe.ingredients.forEach(ingredient => {
+          if (ingredient.ingredientId && ingredient.ingredientId.name && ingredient.ingredientId.dept) {
+            mapping.set(ingredient.ingredientId.name.toLowerCase(), ingredient.ingredientId.dept);
+          }
+        });
+      }
+    });
+    
+    return mapping;
+  };
+
+  // Function to get department for an ingredient name
+  const getIngredientDepartment = (ingredientName, mapping) => {
+    if (!ingredientName) return 'אחר';
+    
+    // Try exact match first
+    const exactMatch = mapping.get(ingredientName.toLowerCase());
+    if (exactMatch) return exactMatch;
+    
+    // Try partial matches for compound ingredient names
+    const nameLower = ingredientName.toLowerCase();
+    for (const [mappedName, dept] of mapping.entries()) {
+      if (nameLower.includes(mappedName) || mappedName.includes(nameLower)) {
+        return dept;
+      }
+    }
+    
+    return 'אחר';
+  };
+
   // Generate shopping list from selected recipes OR load from localStorage
   useEffect(() => {
     if (currentShoppingList) {
@@ -57,185 +81,236 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
         setCheckedItems(initialChecked);
       }
     } else if (effectiveRecipes.length > 0) {
-      const allIngredients = [];
-      
-      selectedRecipes.forEach(recipe => {
-        recipe.ingredients.forEach(ingredient => {
-          // console.log('ShoppingList - Processing ingredient:', ingredient, 'Type:', typeof ingredient);
-          
-          // Handle different ingredient formats
-          let ingredientName = '';
-          let ingredientDisplay = '';
-          let qty = 0;
-          let unit = '';
-          
-          if (typeof ingredient === 'string') {
-            // Try to parse string like "2 כוסות קמח" or just "מלח"
-            const parts = ingredient.trim().split(' ');
-            if (parts.length >= 3) {
-              const possibleQty = parseFloat(parts[0]);
-              if (!isNaN(possibleQty)) {
-                qty = possibleQty;
-                unit = parts[1];
-                ingredientName = parts.slice(2).join(' ');
-                ingredientDisplay = ingredient;
+      (async () => {
+        // Try server-side build when all recipes have server IDs
+        const isObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
+        const recipeIds = selectedRecipes.map(r => r._id || r.id).filter(Boolean);
+
+        if (recipeIds.length === selectedRecipes.length && recipeIds.every(isObjectId)) {
+          try {
+            const list = await buildShoppingList({ userId: 'currentUserId', title: 'רשימת קניות חדשה', recipeIds });
+            console.log('Shopping list created by server:', list);
+
+            const serverItems = list.byDept ? 
+              Object.values(list.byDept).flat().map(item => ({
+                id: item.itemId || `${item.canonicalName}_${item.dept}`,
+                name: item.qty && item.unit && item.qty !== 1 ? 
+                  `${item.qty} ${item.unit} ${item.canonicalName}` :
+                  item.unit && item.unit !== 'יחידה' ?
+                  `${item.unit} ${item.canonicalName}` :
+                  item.canonicalName,
+                baseName: item.canonicalName,
+                qty: item.qty,
+                unit: item.unit,
+                quantity: 1,
+                recipes: selectedRecipes.map(r => r.title || r.name),
+                category: item.dept,
+                checked: false
+              })) : [];
+
+            setShoppingListItems(serverItems);
+            const initialChecked = {};
+            serverItems.forEach(i => initialChecked[i.id] = false);
+            setCheckedItems(initialChecked);
+
+            // Persist current list
+            localStorage.setItem('currentShoppingList', JSON.stringify({
+              ...list,
+              items: serverItems,
+              recipes: selectedRecipes.map(r => r.title || r.name),
+              createdAt: new Date().toISOString()
+            }));
+
+            return; // server list used; skip client aggregation
+          } catch (err) {
+            console.error('Server buildShoppingList failed, falling back to client aggregation:', err);
+            // Continue to client-side aggregation below
+          }
+        }
+
+        // Client-side aggregation fallback (unchanged)
+        const allIngredients = [];
+        
+        // Create ingredient name to department mapping from all recipe data
+        const ingredientDeptMapping = createIngredientDeptMapping(selectedRecipes);
+        
+        selectedRecipes.forEach(recipe => {
+          recipe.ingredients.forEach(ingredient => {
+            // console.log('ShoppingList - Processing ingredient:', ingredient, 'Type:', typeof ingredient);
+            
+            // Handle different ingredient formats
+            let ingredientName = '';
+            let ingredientDisplay = '';
+            let qty = 0;
+            let unit = '';
+            let ingredientDept = 'אחר'; // Default department
+            
+            if (typeof ingredient === 'string') {
+              // Try to parse string like "2 כוסות קמח" or just "מלח"
+              const parts = ingredient.trim().split(' ');
+              if (parts.length >= 3) {
+                const possibleQty = parseFloat(parts[0]);
+                if (!isNaN(possibleQty)) {
+                  qty = possibleQty;
+                  unit = parts[1];
+                  ingredientName = parts.slice(2).join(' ');
+                  ingredientDisplay = ingredient;
+                } else {
+                  ingredientName = ingredient;
+                  ingredientDisplay = ingredient;
+                  qty = 1;
+                  unit = 'יחידה';
+                }
               } else {
                 ingredientName = ingredient;
                 ingredientDisplay = ingredient;
                 qty = 1;
                 unit = 'יחידה';
               }
-            } else {
-              ingredientName = ingredient;
-              ingredientDisplay = ingredient;
-              qty = 1;
-              unit = 'יחידה';
-            }
-          } else if (typeof ingredient === 'object' && ingredient !== null) {
+              
+              // Look up department based on ingredient name
+              ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
+            } else if (typeof ingredient === 'object' && ingredient !== null) {
             // Handle different ingredient structures from backend
+            
             if (ingredient.ingredientId && ingredient.ingredientId.name) {
-              // Backend populated structure: {ingredientId: {name: "..."}, qty: 1, unit: "יחידה"}
+              // Backend populated structure: {ingredientId: {name: "...", dept: "..."}, qty: 1, unit: "יחידה"}
               ingredientName = ingredient.ingredientId.name;
+              ingredientDept = ingredient.ingredientId.dept || 'אחר';
               qty = parseFloat(ingredient.qty || 1);
               unit = ingredient.unit || 'יחידה';
             } else if (ingredient.ingredientName) {
               // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
               ingredientName = ingredient.ingredientName;
+              ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
               qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
               unit = ingredient.unit || 'יחידה';
             } else if (ingredient.name) {
               // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
               ingredientName = ingredient.name;
+              ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
               qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
               unit = ingredient.unit || 'יחידה';
             }
-            
-            // Format display with full string: "qty unit name"
-            if (ingredientName) {
-              const parts = [];
-              if (qty && qty > 0) parts.push(qty);
-              if (unit && unit.trim()) parts.push(unit.trim());
-              parts.push(ingredientName.trim());
               
-              ingredientDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
-            } else if (ingredient.text) {
-              ingredientName = ingredient.text;
-              ingredientDisplay = ingredient.text;
-              qty = 1;
-              unit = 'יחידה';
-            } else if (ingredient.description) {
-              ingredientName = ingredient.description;
-              ingredientDisplay = ingredient.description;
-              qty = 1;
-              unit = 'יחידה';
-            } else {
-              // Try to extract meaningful text from object
-              const values = Object.values(ingredient).filter(v => 
-                typeof v === 'string' && v.trim().length > 0
-              );
-              if (values.length > 0) {
-                ingredientName = values[values.length - 1]; // Use last value as name (usually the actual ingredient)
-                ingredientDisplay = values.join(' ');
+              // Format display with full string: "qty unit name"
+              if (ingredientName) {
+                const parts = [];
+                if (qty && qty > 0) parts.push(qty);
+                if (unit && unit.trim()) parts.push(unit.trim());
+                parts.push(ingredientName.trim());
+                
+                ingredientDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
+              } else if (ingredient.text) {
+                ingredientName = ingredient.text;
+                ingredientDisplay = ingredient.text;
+                ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
+                qty = 1;
+                unit = 'יחידה';
+              } else if (ingredient.description) {
+                ingredientName = ingredient.description;
+                ingredientDisplay = ingredient.description;
+                ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
                 qty = 1;
                 unit = 'יחידה';
               } else {
-                // Skip invalid ingredients
-                return;
+                // Try to extract meaningful text from object
+                const values = Object.values(ingredient).filter(v => 
+                  typeof v === 'string' && v.trim().length > 0
+                );
+                if (values.length > 0) {
+                  ingredientName = values[values.length - 1]; // Use last value as name (usually the actual ingredient)
+                  ingredientDisplay = values.join(' ');
+                  ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
+                  qty = 1;
+                  unit = 'יחידה';
+                } else {
+                  // Skip invalid ingredients
+                  return;
+                }
               }
-            }
-          } else {
-            // Skip invalid ingredients
-            return;
-          }
-          
-          // Clean up and validate
-          ingredientName = ingredientName.trim();
-          ingredientDisplay = ingredientDisplay.trim();
-          
-          if (!ingredientName || !ingredientDisplay) {
-            return; // Skip empty ingredients
-          }
-          
-          // Check if ingredient already exists (case-insensitive) with same unit
-          const existingIndex = allIngredients.findIndex(
-            item => item.baseName.toLowerCase() === ingredientName.toLowerCase() && item.unit === unit
-          );
-          
-          if (existingIndex >= 0) {
-            // Add quantity if ingredient already exists with same unit
-            allIngredients[existingIndex].qty += qty;
-            allIngredients[existingIndex].recipes.push(recipe.title || recipe.name);
-            
-            // Update display with new total quantity
-            const totalQty = allIngredients[existingIndex].qty;
-            const displayUnit = allIngredients[existingIndex].unit;
-            if (totalQty && displayUnit && totalQty !== 1) {
-              allIngredients[existingIndex].name = `${totalQty} ${displayUnit} ${ingredientName}`;
-            } else if (displayUnit && displayUnit !== 'יחידה') {
-              allIngredients[existingIndex].name = `${displayUnit} ${ingredientName}`;
             } else {
-              allIngredients[existingIndex].name = ingredientName;
+              // Skip invalid ingredients
+              return;
             }
-          } else {
-            // Add new ingredient
-            allIngredients.push({
-              id: Date.now() + Math.random(), // Unique ID
-              name: ingredientDisplay,
-              baseName: ingredientName, // Store base name for comparison
-              qty: qty,
-              unit: unit,
-              quantity: 1, // Keep for backward compatibility
-              recipes: [recipe.title || recipe.name],
-              category: categorizeIngredient(ingredientName),
-              checked: false
-            });
-          }
+            
+            // Clean up and validate
+            ingredientName = ingredientName.trim();
+            ingredientDisplay = ingredientDisplay.trim();
+            
+            if (!ingredientName || !ingredientDisplay) {
+              return; // Skip empty ingredients
+            }
+            
+            // Check if ingredient already exists (case-insensitive) with same unit
+            const existingIndex = allIngredients.findIndex(
+              item => item.baseName.toLowerCase() === ingredientName.toLowerCase() && item.unit === unit
+            );
+            
+            if (existingIndex >= 0) {
+              // Add quantity if ingredient already exists with same unit
+              allIngredients[existingIndex].qty += qty;
+              allIngredients[existingIndex].recipes.push(recipe.title || recipe.name);
+              
+              // Update display with new total quantity
+              const totalQty = allIngredients[existingIndex].qty;
+              const displayUnit = allIngredients[existingIndex].unit;
+              if (totalQty && displayUnit && totalQty !== 1) {
+                allIngredients[existingIndex].name = `${totalQty} ${displayUnit} ${ingredientName}`;
+              } else if (displayUnit && displayUnit !== 'יחידה') {
+                allIngredients[existingIndex].name = `${displayUnit} ${ingredientName}`;
+              } else {
+                allIngredients[existingIndex].name = ingredientName;
+              }
+            } else {
+              // Add new ingredient
+              allIngredients.push({
+                id: Date.now() + Math.random(), // Unique ID
+                name: ingredientDisplay,
+                baseName: ingredientName, // Store base name for comparison
+                qty: qty,
+                unit: unit,
+                quantity: 1, // Keep for backward compatibility
+                recipes: [recipe.title || recipe.name],
+                category: ingredientDept,
+                checked: false
+              });
+            }
+          });
         });
-      });
 
-      // Sort ingredients by category and name
-      allIngredients.sort((a, b) => {
-        if (a.category !== b.category) {
-          return a.category.localeCompare(b.category);
+        // Sort ingredients by category and name
+        allIngredients.sort((a, b) => {
+          if (a.category !== b.category) {
+            return a.category.localeCompare(b.category);
+          }
+          return a.name.localeCompare(b.name);
+        });
+
+        setShoppingListItems(allIngredients);
+        
+        // Initialize checked items state
+        const initialChecked = {};
+        allIngredients.forEach(item => {
+          initialChecked[item.id] = false;
+        });
+        setCheckedItems(initialChecked);
+
+        // Save current shopping list to localStorage only if we're generating from selectedRecipes
+        if (effectiveRecipes.length > 0) {
+          const currentListData = {
+            id: Date.now().toString(),
+            name: `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
+            createdAt: new Date().toISOString(),
+            recipes: effectiveRecipes.map(recipe => recipe.name || recipe.title),
+            items: allIngredients
+          };
+          localStorage.setItem('currentShoppingList', JSON.stringify(currentListData));
         }
-        return a.name.localeCompare(b.name);
-      });
-
-      setShoppingListItems(allIngredients);
-      
-      // Initialize checked items state
-      const initialChecked = {};
-      allIngredients.forEach(item => {
-        initialChecked[item.id] = false;
-      });
-      setCheckedItems(initialChecked);
-
-      // Save current shopping list to localStorage only if we're generating from selectedRecipes
-      if (effectiveRecipes.length > 0) {
-        const currentListData = {
-          id: Date.now().toString(),
-          name: `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
-          createdAt: new Date().toISOString(),
-          recipes: effectiveRecipes.map(recipe => recipe.name || recipe.title),
-          items: allIngredients
-        };
-        localStorage.setItem('currentShoppingList', JSON.stringify(currentListData));
-      }
+      })();
     }
   }, [selectedRecipes, effectiveRecipes, currentShoppingList]);
 
-  // Categorize ingredient based on keywords
-  const categorizeIngredient = (ingredient) => {
-    const ingredientLower = ingredient.toLowerCase();
-    
-    for (const [category, keywords] of Object.entries(ingredientCategories)) {
-      if (keywords.some(keyword => ingredientLower.includes(keyword))) {
-        return category;
-      }
-    }
-    
-    return 'אחר';
-  };
 
   // Group items by category
   const groupedItems = useMemo(() => {
