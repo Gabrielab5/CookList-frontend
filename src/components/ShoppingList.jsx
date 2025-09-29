@@ -33,7 +33,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
   // Create a mapping of ingredient names to departments from available recipe data
   const createIngredientDeptMapping = (recipes) => {
     const mapping = new Map();
-    
+
     recipes.forEach(recipe => {
       if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
         recipe.ingredients.forEach(ingredient => {
@@ -43,18 +43,18 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
         });
       }
     });
-    
+
     return mapping;
   };
 
   // Function to get department for an ingredient name
   const getIngredientDepartment = (ingredientName, mapping) => {
     if (!ingredientName) return 'אחר';
-    
+
     // Try exact match first
     const exactMatch = mapping.get(ingredientName.toLowerCase());
     if (exactMatch) return exactMatch;
-    
+
     // Try partial matches for compound ingredient names
     const nameLower = ingredientName.toLowerCase();
     for (const [mappedName, dept] of mapping.entries()) {
@@ -62,7 +62,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
         return dept;
       }
     }
-    
+
     return 'אחר';
   };
 
@@ -72,7 +72,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
       // Load from localStorage data
       if (currentShoppingList.items) {
         setShoppingListItems(currentShoppingList.items);
-        
+
         // Initialize checked items state from localStorage data
         const initialChecked = {};
         currentShoppingList.items.forEach(item => {
@@ -91,14 +91,14 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
             const list = await buildShoppingList({ userId: 'currentUserId', title: 'רשימת קניות חדשה', recipeIds });
             console.log('Shopping list created by server:', list);
 
-            const serverItems = list.byDept ? 
+            const serverItems = list.byDept ?
               Object.values(list.byDept).flat().map(item => ({
                 id: item.itemId || `${item.canonicalName}_${item.dept}`,
-                name: item.qty && item.unit && item.qty !== 1 ? 
+                name: item.qty && item.unit && item.qty !== 1 ?
                   `${item.qty} ${item.unit} ${item.canonicalName}` :
                   item.unit && item.unit !== 'יחידה' ?
-                  `${item.unit} ${item.canonicalName}` :
-                  item.canonicalName,
+                    `${item.unit} ${item.canonicalName}` :
+                    item.canonicalName,
                 baseName: item.canonicalName,
                 qty: item.qty,
                 unit: item.unit,
@@ -130,21 +130,21 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
 
         // Client-side aggregation fallback (unchanged)
         const allIngredients = [];
-        
+
         // Create ingredient name to department mapping from all recipe data
         const ingredientDeptMapping = createIngredientDeptMapping(selectedRecipes);
-        
+
         selectedRecipes.forEach(recipe => {
           recipe.ingredients.forEach(ingredient => {
             // console.log('ShoppingList - Processing ingredient:', ingredient, 'Type:', typeof ingredient);
-            
+
             // Handle different ingredient formats
             let ingredientName = '';
             let ingredientDisplay = '';
             let qty = 0;
             let unit = '';
             let ingredientDept = 'אחר'; // Default department
-            
+
             if (typeof ingredient === 'string') {
               // Try to parse string like "2 כוסות קמח" or just "מלח"
               const parts = ingredient.trim().split(' ');
@@ -167,39 +167,39 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
                 qty = 1;
                 unit = 'יחידה';
               }
-              
+
               // Look up department based on ingredient name
               ingredientDept = getIngredientDepartment(ingredientName, ingredientDeptMapping);
             } else if (typeof ingredient === 'object' && ingredient !== null) {
-            // Handle different ingredient structures from backend
-            
-            if (ingredient.ingredientId && ingredient.ingredientId.name) {
-              // Backend populated structure: {ingredientId: {name: "...", dept: "..."}, qty: 1, unit: "יחידה"}
-              ingredientName = ingredient.ingredientId.name;
-              ingredientDept = ingredient.ingredientId.dept || 'אחר';
-              qty = parseFloat(ingredient.qty || 1);
-              unit = ingredient.unit || 'יחידה';
-            } else if (ingredient.ingredientName) {
-              // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
-              ingredientName = ingredient.ingredientName;
-              ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
-              qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
-              unit = ingredient.unit || 'יחידה';
-            } else if (ingredient.name) {
-              // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
-              ingredientName = ingredient.name;
-              ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
-              qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
-              unit = ingredient.unit || 'יחידה';
-            }
-              
+              // Handle different ingredient structures from backend
+
+              if (ingredient.ingredientId && ingredient.ingredientId.name) {
+                // Backend populated structure: {ingredientId: {name: "...", dept: "..."}, qty: 1, unit: "יחידה"}
+                ingredientName = ingredient.ingredientId.name;
+                ingredientDept = ingredient.ingredientId.dept || 'אחר';
+                qty = parseFloat(ingredient.qty || 1);
+                unit = ingredient.unit || 'יחידה';
+              } else if (ingredient.ingredientName) {
+                // Alternative structure: {ingredientName: "...", qty: 1, unit: "יחידה"}
+                ingredientName = ingredient.ingredientName;
+                ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
+                qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
+                unit = ingredient.unit || 'יחידה';
+              } else if (ingredient.name) {
+                // Direct structure: {name: "...", qty: 1, unit: "יחידה"}
+                ingredientName = ingredient.name;
+                ingredientDept = ingredient.dept || getIngredientDepartment(ingredientName, ingredientDeptMapping);
+                qty = parseFloat(ingredient.qty || ingredient.quantity || 1);
+                unit = ingredient.unit || 'יחידה';
+              }
+
               // Format display with full string: "qty unit name"
               if (ingredientName) {
                 const parts = [];
                 if (qty && qty > 0) parts.push(qty);
                 if (unit && unit.trim()) parts.push(unit.trim());
                 parts.push(ingredientName.trim());
-                
+
                 ingredientDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
               } else if (ingredient.text) {
                 ingredientName = ingredient.text;
@@ -215,7 +215,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
                 unit = 'יחידה';
               } else {
                 // Try to extract meaningful text from object
-                const values = Object.values(ingredient).filter(v => 
+                const values = Object.values(ingredient).filter(v =>
                   typeof v === 'string' && v.trim().length > 0
                 );
                 if (values.length > 0) {
@@ -233,25 +233,25 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               // Skip invalid ingredients
               return;
             }
-            
+
             // Clean up and validate
             ingredientName = ingredientName.trim();
             ingredientDisplay = ingredientDisplay.trim();
-            
+
             if (!ingredientName || !ingredientDisplay) {
               return; // Skip empty ingredients
             }
-            
+
             // Check if ingredient already exists (case-insensitive) with same unit
             const existingIndex = allIngredients.findIndex(
               item => item.baseName.toLowerCase() === ingredientName.toLowerCase() && item.unit === unit
             );
-            
+
             if (existingIndex >= 0) {
               // Add quantity if ingredient already exists with same unit
               allIngredients[existingIndex].qty += qty;
               allIngredients[existingIndex].recipes.push(recipe.title || recipe.name);
-              
+
               // Update display with new total quantity
               const totalQty = allIngredients[existingIndex].qty;
               const displayUnit = allIngredients[existingIndex].unit;
@@ -288,7 +288,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
         });
 
         setShoppingListItems(allIngredients);
-        
+
         // Initialize checked items state
         const initialChecked = {};
         allIngredients.forEach(item => {
@@ -348,12 +348,12 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
   const handleCategoryCheck = (category) => {
     const categoryItems = groupedItems[category] || [];
     const allChecked = categoryItems.every(item => checkedItems[item.id]);
-    
+
     const newCheckedItems = { ...checkedItems };
     categoryItems.forEach(item => {
       newCheckedItems[item.id] = !allChecked;
     });
-    
+
     setCheckedItems(newCheckedItems);
   };
 
@@ -361,11 +361,11 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
   const handleCheckAll = () => {
     const allChecked = shoppingListItems.every(item => checkedItems[item.id]);
     const newCheckedItems = {};
-    
+
     shoppingListItems.forEach(item => {
       newCheckedItems[item.id] = !allChecked;
     });
-    
+
     setCheckedItems(newCheckedItems);
   };
 
@@ -378,7 +378,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
   const clearCompleted = () => {
     const remainingItems = shoppingListItems.filter(item => !checkedItems[item.id]);
     setShoppingListItems(remainingItems);
-    
+
     const newCheckedItems = {};
     remainingItems.forEach(item => {
       newCheckedItems[item.id] = false;
@@ -388,10 +388,10 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
 
   // Add to history
   const handleAddToHistory = () => {
-    const recipesForHistory = currentShoppingList 
+    const recipesForHistory = currentShoppingList
       ? (currentShoppingList.recipes || [])
       : selectedRecipes.map(recipe => recipe.name || recipe.title);
-      
+
     const shoppingListData = {
       id: Date.now().toString(),
       name: currentShoppingList?.name || `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
@@ -439,6 +439,48 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
       </div>
     );
   }
+  // Génère un texte lisible pour export Notes
+  const generateExportText = () => {
+    const lines = [];
+    lines.push(`🛒 רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`, '');
+
+    Object.entries(groupedItems).forEach(([category, items]) => {
+      if (!items.length) return;
+      lines.push(`📂 ${category}`);
+      items.forEach(item => {
+        const checked = checkedItems[item.id] ? "x" : " ";
+        lines.push(`- [${checked}] ${item.name}`);
+      });
+      lines.push('');
+    });
+
+    return lines.join('\n');
+  };
+
+  const handleExport = async () => {
+    const text = generateExportText();
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "רשימת קניות", text });
+        return;
+      } catch (e) {
+        console.log("Share canceled or failed", e);
+      }
+    }
+
+    // Fallback: copier + téléchargement
+    try { await navigator.clipboard.writeText(text); } catch { }
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement("a"), {
+      href: url,
+      download: `shopping-list-${new Date().toISOString().slice(0, 10)}.txt`,
+    });
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    alert("נשמר לקובץ טקסט / הועתק ללוח.");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -535,7 +577,14 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
               </svg>
               הוסף להיסטוריה
             </button>
+
           )}
+          <button
+            onClick={handleExport}
+            className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-xl hover:bg-blue-600 transition-colors duration-200"
+          >
+            שתף / ייצא רשימה
+          </button>
         </div>
 
         {/* Shopping List by Categories */}
@@ -569,11 +618,10 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
                   {items.map(item => (
                     <div
                       key={item.id}
-                      className={`flex items-start p-4 rounded-lg border-2 transition-all duration-200 ${
-                        checkedItems[item.id]
-                          ? 'bg-green-50 border-green-200'
-                          : 'bg-white border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`flex items-start p-4 rounded-lg border-2 transition-all duration-200 ${checkedItems[item.id]
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-white border-gray-200 hover:border-gray-300'
+                        }`}
                     >
                       <div className="flex items-start gap-3 flex-1">
                         <input
@@ -582,13 +630,12 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
                           onChange={() => handleItemCheck(item.id)}
                           className="w-5 h-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500 mt-0.5 flex-shrink-0"
                         />
-                        
+
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-2">
                             <span
-                              className={`text-lg font-medium ${
-                                checkedItems[item.id] ? 'text-green-700 line-through' : 'text-gray-900'
-                              }`}
+                              className={`text-lg font-medium ${checkedItems[item.id] ? 'text-green-700 line-through' : 'text-gray-900'
+                                }`}
                             >
                               {item.name}
                             </span>
@@ -596,7 +643,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
                               {item.quantity} {item.quantity === 1 ? 'מתכון' : 'מתכונים'}
                             </span>
                           </div>
-                          
+
                           {item.recipes.length > 0 && (
                             <div className="mt-1">
                               <span className="text-sm text-gray-600">מהמתכונים: </span>
@@ -632,6 +679,8 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
           </div>
         )}
       </div>
+
+
     </div>
   );
 };

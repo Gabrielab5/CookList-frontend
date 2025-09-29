@@ -327,3 +327,9 @@ export async function deleteShoppingList(listId) {
     throw new Error(`שגיאה במחיקת רשימת הקניות: ${error.message}`);
   }
 }
+
+export async function exportShoppingList(listId) {
+  const resp = await fetch(`${API_URL}/lists/${listId}/export.txt`);
+  if (!resp.ok) throw new Error("Export failed");
+  return await resp.text();
+}
