@@ -439,7 +439,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
       </div>
     );
   }
-  // Génère un texte lisible pour export Notes
+
   const generateExportText = () => {
     const lines = [];
     lines.push(`🛒 רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`, '');
