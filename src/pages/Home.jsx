@@ -19,6 +19,9 @@ import {
   generateRecipe,
   buildShoppingList,
   getShoppingList,
+  fetchFavorites,
+  addFavorite,
+  removeFavorite,
 } from "../api";
 
 const Home = () => {
@@ -53,10 +56,14 @@ const Home = () => {
   const [isAiPromptModalOpen, setIsAiPromptModalOpen] = useState(false);
   const [isAiPreviewModalOpen, setIsAiPreviewModalOpen] = useState(false);
   const [aiGeneratedRecipe, setAiGeneratedRecipe] = useState(null);
-  const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem("favoriteRecipes");
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
-  });
+  const [favorites, setFavorites] = useState([]);
+
+  // Load the user's favorites from the server
+  useEffect(() => {
+    fetchFavorites()
+      .then(setFavorites)
+      .catch(err => console.error("Error loading favorites:", err));
+  }, []);
 
   // Fetch recipes from API
   useEffect(() => {
@@ -585,17 +592,30 @@ const Home = () => {
                           setSelectedRecipeForDetails(r);
                           setIsRecipeDetailModalOpen(true);
                         }}
-                        isFavorite={favorites.some(f => (f.id || f.title) === (recipe.id || recipe.title))}
+                        isFavorite={favorites.some(f => (f._id || f.id) === (recipe._id || recipe.id))}
                         isSelected={selectedRecipes.some(x => (x.id || x.title) === (recipe.id || recipe.title))}
-                        onToggleFavorite={(r) => {
-                          setFavorites(prev => {
-                            const isFav = prev.some(f => (f.id || f.title) === (r.id || r.title));
-                            const newFavs = isFav
-                              ? prev.filter(f => (f.id || f.title) !== (r.id || r.title))
-                              : [...prev, r];
-                            localStorage.setItem("favoriteRecipes", JSON.stringify(newFavs));
-                            return newFavs;
-                          });
+                        onToggleFavorite={async (r) => {
+                          const recipeId = r._id || r.id;
+                          const isFav = favorites.some(f => (f._id || f.id) === recipeId);
+                          const previous = favorites;
+
+                          setFavorites(prev =>
+                            isFav
+                              ? prev.filter(f => (f._id || f.id) !== recipeId)
+                              : [...prev, r]
+                          );
+
+                          try {
+                            if (isFav) {
+                              await removeFavorite(recipeId);
+                            } else {
+                              await addFavorite(recipeId);
+                            }
+                          } catch (err) {
+                            console.error("Error toggling favorite:", err);
+                            alert("שגיאה בעדכון המועדפים");
+                            setFavorites(previous); // rollback
+                          }
                         }}
                       />
                     ))}

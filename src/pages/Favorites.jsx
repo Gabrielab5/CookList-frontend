@@ -3,38 +3,50 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import RecipeCard from '../components/RecipeCard';
 import RecipeDetailModal from '../components/RecipeDetailModal';
+import { fetchFavorites, removeFavorite } from '../api';
 
 const Favorites = () => {
     const navigate = useNavigate();
     const [favorites, setFavorites] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // טען מועדפים מ-localStorage
+    // טען מועדפים מהשרת
     useEffect(() => {
-        const savedFavorites = localStorage.getItem('favoriteRecipes');
-        if (savedFavorites) {
-            setFavorites(JSON.parse(savedFavorites));
-        }
+        let cancelled = false;
+
+        (async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await fetchFavorites();
+                if (!cancelled) setFavorites(data);
+            } catch (err) {
+                console.error('Error loading favorites:', err);
+                if (!cancelled) setError('שגיאה בטעינת המועדפים');
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+
+        return () => { cancelled = true; };
     }, []);
 
-    const handleToggleFavorite = (recipe) => {
-        setFavorites(prevFavorites => {
-            const isFavorite = prevFavorites.some(fav => fav.id === recipe.id);
-            let newFavorites;
-            
-            if (isFavorite) {
-                // הסר מהמועדפים
-                newFavorites = prevFavorites.filter(fav => fav.id !== recipe.id);
-            } else {
-                // הוסף למועדפים
-                newFavorites = [...prevFavorites, recipe];
-            }
-            
-            // שמור ב-localStorage
-            localStorage.setItem('favoriteRecipes', JSON.stringify(newFavorites));
-            return newFavorites;
-        });
+    // בעמוד הזה כל מתכון הוא כבר מועדף, אז הסרה בלבד
+    const handleToggleFavorite = async (recipe) => {
+        const recipeId = recipe._id || recipe.id;
+        const previous = favorites;
+        setFavorites(prev => prev.filter(fav => (fav._id || fav.id) !== recipeId));
+
+        try {
+            await removeFavorite(recipeId);
+        } catch (err) {
+            console.error('Error removing favorite:', err);
+            alert('שגיאה בהסרת המתכון מהמועדפים');
+            setFavorites(previous); // rollback on failure
+        }
     };
 
     const handleViewRecipeDetails = (recipe) => {
@@ -57,16 +69,39 @@ const Favorites = () => {
         alert(`המתכון "${recipe.name}" נוסף לרשימת הקניות!`);
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <Header onLogout={() => navigate('/login')} />
+                <div className="flex items-center justify-center py-24">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                    <span className="mr-3 text-gray-600">טוען מועדפים...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <Header onLogout={() => navigate('/login')} />
+                <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-16 text-center">
+                    <p className="text-red-600 text-lg">{error}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Header onLogout={() => navigate('/login')} />
-            
+
             <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-8">
                 {/* כותרת העמוד */}
                 <div className="mb-10">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">המועדפים שלי</h1>
                     <p className="text-lg text-gray-600">
-                        {favorites.length === 0 
+                        {favorites.length === 0
                             ? "אין עדיין מתכונים מועדפים. התחל להוסיף מתכונים למועדפים שלך!"
                             : `יש לך ${favorites.length} ${favorites.length === 1 ? 'מתכון' : 'מתכונים'} ${favorites.length === 1 ? 'מועדף' : 'מועדפים'}`
                         }
@@ -77,9 +112,9 @@ const Favorites = () => {
                 {favorites.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
                         {favorites.map(recipe => (
-                            <div key={recipe.id} className="relative">
-                                <RecipeCard 
-                                    recipe={recipe} 
+                            <div key={recipe._id} className="relative">
+                                <RecipeCard
+                                    recipe={recipe}
                                     onSelect={handleRecipeSelect}
                                     onViewDetails={handleViewRecipeDetails}
                                     isFavorite={true} // תמיד true מכיוון שאנחנו בעמוד המועדפים

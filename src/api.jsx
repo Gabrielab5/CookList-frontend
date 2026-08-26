@@ -286,3 +286,36 @@ export async function exportShoppingList(listId) {
   const resp = await apiService.getRaw(`/lists/${listId}/export.txt`);
   return await resp.text();
 }
+
+// Favorites
+
+export async function fetchFavorites() {
+  try {
+    const response = await apiService.get('/favorites');
+    if (response.success && Array.isArray(response.data)) {
+      return response.data;
+    }
+    return Array.isArray(response) ? response : [];
+  } catch (error) {
+    console.error("Error fetching favorites:", error);
+    throw new Error(`שגיאה בטעינת המועדפים: ${error.message}`);
+  }
+}
+
+export async function addFavorite(recipeId) {
+  try {
+    return await apiService.post('/favorites', { recipeId });
+  } catch (error) {
+    console.error("Error adding favorite:", error);
+    throw new Error(`שגיאה בהוספה למועדפים: ${error.message}`);
+  }
+}
+
+export async function removeFavorite(recipeId) {
+  try {
+    return await apiService.delete(`/favorites/${recipeId}`);
+  } catch (error) {
+    console.error("Error removing favorite:", error);
+    throw new Error(`שגיאה בהסרה מהמועדפים: ${error.message}`);
+  }
+}
