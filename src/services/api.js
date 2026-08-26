@@ -87,6 +87,19 @@ class ApiService {
       body: JSON.stringify(data),
     });
   }
+
+  // GET request that returns the raw Response, for non-JSON endpoints (e.g. a plain-text export)
+  async getRaw(endpoint) {
+    const url = `${this.baseURL}${endpoint}`;
+    const response = await fetch(url, { headers: this.getHeaders() });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      throw new Error(errorText || `HTTP error! status: ${response.status}`);
+    }
+
+    return response;
+  }
 }
 
 // Create singleton instance

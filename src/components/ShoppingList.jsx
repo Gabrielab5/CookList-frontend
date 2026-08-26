@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from './Header';
-import { buildShoppingList } from '../api';
+import { buildShoppingList, updateShoppingListItem, updateShoppingListStatus } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+
+const isObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
 const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) => {
   const { user } = useAuth();
@@ -9,6 +11,9 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
   const [shoppingListItems, setShoppingListItems] = useState([]);
   const [currentShoppingList, setCurrentShoppingList] = useState(null);
   const [effectiveRecipes, setEffectiveRecipes] = useState([]);
+  // Real backend id of the list being shown, when it was built/loaded from the server
+  // (as opposed to the client-side aggregation fallback below, which has no server id).
+  const [serverListId, setServerListId] = useState(null);
 
 
   // Load current shopping list from localStorage if no selectedRecipes
@@ -21,6 +26,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
           const parsedList = JSON.parse(currentListData);
           setCurrentShoppingList(parsedList);
           setEffectiveRecipes([]); // We don't need recipes for display, we have the shopping list data
+          setServerListId(parsedList.listId || null);
           return;
         } catch (error) {
           console.error('Error parsing current shopping list:', error);
@@ -85,13 +91,13 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
     } else if (effectiveRecipes.length > 0) {
       (async () => {
         // Try server-side build when all recipes have server IDs
-        const isObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
         const recipeIds = selectedRecipes.map(r => r._id || r.id).filter(Boolean);
 
         if (recipeIds.length === selectedRecipes.length && recipeIds.every(isObjectId)) {
           try {
             const list = await buildShoppingList({ userId: user?.uid, title: 'רשימת קניות חדשה', recipeIds });
             console.log('Shopping list created by server:', list);
+            setServerListId(list.listId || null);
 
             const serverItems = list.byDept ?
               Object.values(list.byDept).flat().map(item => ({
@@ -334,7 +340,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
     };
     setCheckedItems(newCheckedItems);
 
-    // Update localStorage
+    // Update localStorage (keeps the "current cart" preview in sync while shopping)
     const currentListData = localStorage.getItem('currentShoppingList');
     if (currentListData) {
       const currentList = JSON.parse(currentListData);
@@ -343,6 +349,13 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
         checked: newCheckedItems[item.id] || false
       }));
       localStorage.setItem('currentShoppingList', JSON.stringify(currentList));
+    }
+
+    // Persist the checked state to the backend in the background, when this
+    // item has a real backend id (i.e. the list was built server-side).
+    if (serverListId && isObjectId(itemId)) {
+      updateShoppingListItem(serverListId, itemId, { checked: newCheckedItems[itemId] })
+        .catch(err => console.error('Failed to persist item checked state:', err));
     }
   };
 
@@ -388,31 +401,28 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
     setCheckedItems(newCheckedItems);
   };
 
-  // Add to history
-  const handleAddToHistory = () => {
-    const recipesForHistory = currentShoppingList
-      ? (currentShoppingList.recipes || [])
-      : selectedRecipes.map(recipe => recipe.name || recipe.title);
+  // Mark the list as done on the server, so it shows up in the (server-backed) shopping history.
+  const handleAddToHistory = async () => {
+    if (!serverListId) {
+      // This list only exists client-side (e.g. built from recipes with no
+      // server id yet), so there is nothing to persist as history.
+      alert('לא ניתן לשמור רשימה זו בהיסטוריה כי היא לא נשמרה בשרת. שמור את המתכונים בשרת ונסה שוב.');
+      setShoppingListItems([]);
+      setCheckedItems({});
+      return;
+    }
 
-    const shoppingListData = {
-      id: Date.now().toString(),
-      name: currentShoppingList?.name || `רשימת קניות - ${new Date().toLocaleDateString('he-IL')}`,
-      createdAt: currentShoppingList?.createdAt || new Date().toISOString(),
-      recipes: recipesForHistory,
-      items: shoppingListItems.map(item => ({
-        ...item,
-        checked: checkedItems[item.id || item._id || `${item.name}_${item.category}`] || false
-      }))
-    };
-
-    // Save to localStorage
-    const existingHistory = JSON.parse(localStorage.getItem('shoppingHistory') || '[]');
-    existingHistory.unshift(shoppingListData); // Add to beginning
-    localStorage.setItem('shoppingHistory', JSON.stringify(existingHistory));
+    try {
+      await updateShoppingListStatus(serverListId, 'done');
+    } catch (err) {
+      console.error('Failed to mark shopping list as done:', err);
+      alert('שגיאה בשמירת רשימת הקניות בהיסטוריה. נסה שוב.');
+      return;
+    }
 
     // Call parent callback
     if (onAddToHistory) {
-      onAddToHistory(shoppingListData);
+      onAddToHistory({ listId: serverListId });
     }
 
     // Clear current shopping list

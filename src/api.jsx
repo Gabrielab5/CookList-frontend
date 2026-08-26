@@ -1,4 +1,3 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 import apiService from './services/api';
 
 // Fetch all recipes with proper error handling
@@ -174,16 +173,9 @@ export async function buildShoppingList({ userId, title, recipeIds }) {
  */
 export async function getShoppingList(listId) {
   try {
-    const res = await fetch(`${API_URL}/lists/${listId}`);
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
-    }
-    
-    const response = await res.json();
+    const response = await apiService.get(`/lists/${listId}`);
     console.log("Shopping list fetched:", response);
-    
+
     // Handle different response formats
     if (response.success && response.data) {
       return response.data;
@@ -203,17 +195,10 @@ export async function getShoppingList(listId) {
  */
 export async function getAllShoppingLists(status = null) {
   try {
-    const url = status ? `${API_URL}/lists?status=${status}` : `${API_URL}/lists`;
-    const res = await fetch(url);
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
-    }
-    
-    const response = await res.json();
+    const endpoint = status ? `/lists?status=${status}` : '/lists';
+    const response = await apiService.get(endpoint);
     console.log("Shopping lists fetched:", response);
-    
+
     // Handle different response formats
     if (response.success && response.data) {
       return response.data;
@@ -237,20 +222,9 @@ export async function getAllShoppingLists(status = null) {
  */
 export async function updateShoppingListItem(listId, itemId, updateData) {
   try {
-    const res = await fetch(`${API_URL}/lists/${listId}/items/${itemId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updateData),
-    });
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
-    }
-    
-    const response = await res.json();
+    const response = await apiService.put(`/lists/${listId}/items/${itemId}`, updateData);
     console.log("Shopping list item updated:", response);
-    
+
     // Handle different response formats
     if (response.success && response.data) {
       return response.data;
@@ -271,20 +245,9 @@ export async function updateShoppingListItem(listId, itemId, updateData) {
  */
 export async function updateShoppingListStatus(listId, status) {
   try {
-    const res = await fetch(`${API_URL}/lists/${listId}/status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
-    }
-    
-    const response = await res.json();
+    const response = await apiService.put(`/lists/${listId}/status`, { status });
     console.log("Shopping list status updated:", response);
-    
+
     // Handle different response formats
     if (response.success && response.data) {
       return response.data;
@@ -304,18 +267,9 @@ export async function updateShoppingListStatus(listId, status) {
  */
 export async function deleteShoppingList(listId) {
   try {
-    const res = await fetch(`${API_URL}/lists/${listId}`, {
-      method: "DELETE",
-    });
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
-    }
-    
-    const response = await res.json();
+    const response = await apiService.delete(`/lists/${listId}`);
     console.log("Shopping list deleted:", response);
-    
+
     // Handle different response formats
     if (response.success) {
       return response.message || "רשימת הקניות נמחקה בהצלחה";
@@ -329,7 +283,6 @@ export async function deleteShoppingList(listId) {
 }
 
 export async function exportShoppingList(listId) {
-  const resp = await fetch(`${API_URL}/lists/${listId}/export.txt`);
-  if (!resp.ok) throw new Error("Export failed");
+  const resp = await apiService.getRaw(`/lists/${listId}/export.txt`);
   return await resp.text();
 }
