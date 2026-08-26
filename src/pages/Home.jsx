@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import Header from "../components/Header";
 import FilterSidebar from "../components/FilterSidebar";
 import RecipeCard from "../components/RecipeCard";
@@ -22,6 +23,7 @@ import {
 
 const Home = () => {
   const location = useLocation();
+  const { user } = useAuth();
 
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -345,7 +347,7 @@ const Home = () => {
 
     try {
       const list = await buildShoppingList({
-        userId: "currentUserId",
+        userId: user?.uid,
         title: "רשימת קניות חדשה",
         recipeIds: selectedRecipes.map(r => r._id || r.id),
       });

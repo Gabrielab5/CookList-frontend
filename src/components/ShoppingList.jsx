@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from './Header';
 import { buildShoppingList } from '../api';
+import { useAuth } from '../contexts/AuthContext';
 
 const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) => {
+  const { user } = useAuth();
   const [checkedItems, setCheckedItems] = useState({});
   const [shoppingListItems, setShoppingListItems] = useState([]);
   const [currentShoppingList, setCurrentShoppingList] = useState(null);
@@ -88,7 +90,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
 
         if (recipeIds.length === selectedRecipes.length && recipeIds.every(isObjectId)) {
           try {
-            const list = await buildShoppingList({ userId: 'currentUserId', title: 'רשימת קניות חדשה', recipeIds });
+            const list = await buildShoppingList({ userId: user?.uid, title: 'רשימת קניות חדשה', recipeIds });
             console.log('Shopping list created by server:', list);
 
             const serverItems = list.byDept ?
@@ -309,7 +311,7 @@ const ShoppingList = ({ selectedRecipes, onBack, onAddToHistory, onClearCart }) 
         }
       })();
     }
-  }, [selectedRecipes, effectiveRecipes, currentShoppingList]);
+  }, [selectedRecipes, effectiveRecipes, currentShoppingList, user?.uid]);
 
 
   // Group items by category

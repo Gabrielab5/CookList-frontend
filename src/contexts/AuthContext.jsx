@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import firebaseAuthService from '../services/firebaseAuthService';
+import apiService from '../services/api';
 
 const AuthContext = createContext();
 
@@ -17,8 +18,17 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = firebaseAuthService.onAuthStateChanged((user) => {
-      setUser(user);
+    // onIdTokenChanged fires on sign-in, sign-out, AND whenever Firebase
+    // silently refreshes the ID token (~hourly) — keeping apiService's
+    // Authorization header valid for the whole session, not just at login.
+    const unsubscribe = firebaseAuthService.onIdTokenChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        const token = await firebaseUser.getIdToken();
+        apiService.setToken(token);
+      } else {
+        apiService.setToken(null);
+      }
+      setUser(firebaseUser);
       setLoading(false);
     });
 

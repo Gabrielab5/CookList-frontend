@@ -3,6 +3,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  onIdTokenChanged,
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
@@ -129,6 +130,13 @@ class FirebaseAuthService {
   // Listen to auth state changes
   onAuthStateChanged(callback) {
     return onAuthStateChanged(this.auth, callback);
+  }
+
+  // Like onAuthStateChanged, but also fires whenever Firebase silently
+  // refreshes the user's ID token (roughly every hour) — use this when the
+  // callback needs to keep an up-to-date token, not just the user object.
+  onIdTokenChanged(callback) {
+    return onIdTokenChanged(this.auth, callback);
   }
 
   // Handle Firebase auth errors
